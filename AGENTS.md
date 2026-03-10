@@ -1,27 +1,54 @@
-# ATLAS Build Instructions
+You are building the Atlas Account Intelligence platform.
 
-Build exactly to the architecture in this repo.
+Stack:
+Next.js
+Supabase
+TypeScript
+Tailwind
+Vercel
 
-## Non-negotiables
-- Dark mode only
-- No auto-sent outreach
-- Linkup behind a single service boundary
-- Agents emit normalized facts, not UI blobs
-- Recommendations must be explainable from stored signals
-- Bryan pages must remain scoped to Yahoo only
+Purpose:
+Monitor Yahoo, FICO, and Schneider Electric for hiring signals,
+leadership movement, product initiatives, conferences,
+and LinkedIn discoveries.
 
-## Priority order
-1. schema and types
-2. connectors
-3. agent framework
-4. signal scoring
-5. briefing engine
-6. dashboard read surfaces
-7. outreach board persistence
+The platform runs 12 scheduled agents.
 
-## Done means
-- app builds
-- routes work
-- seed script works
-- cron endpoint runs all agents without crashing
-- dashboard reads real data from Supabase
+Agents must only collect and normalize signals.
+
+Signal interpretation must occur in the intelligence engine.
+
+Do not auto-send outreach.
+Only recommend actions.
+
+UI must be dark mode only.
+
+Major system layers:
+
+1. Connectors
+2. Normalization
+3. Signal engine
+4. Opportunity scoring
+5. Strategy briefing
+6. Dashboard interface
+
+LinkedIn must only be accessed through the linkupService adapter.
+
+Never call Linkup directly from UI code.
+
+The dashboard must show:
+
+signals feed
+discoveries table
+org chart explorer
+outreach kanban
+agent health console
+daily strategy brief
+
+Deployment:
+Vercel + Supabase.
+
+Cron endpoints trigger agents.
+
+Do not introduce unnecessary UI complexity.
+Focus on signal quality and explainability.
