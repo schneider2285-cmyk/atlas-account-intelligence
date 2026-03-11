@@ -4,6 +4,7 @@ import { ProductUsageConnector } from "./productUsageConnector";
 import { NewsConnector } from "./newsConnector";
 import { HiringConnector } from "./hiringConnector";
 import { IntentConnector } from "./intentConnector";
+import { DossierConnector } from "./dossierConnector";
 
 export class ConnectorRegistry {
   constructor() {
@@ -13,7 +14,8 @@ export class ConnectorRegistry {
       new ProductUsageConnector(),
       new NewsConnector(),
       new HiringConnector(),
-      new IntentConnector()
+      new IntentConnector(),
+      new DossierConnector()
     ];
   }
 

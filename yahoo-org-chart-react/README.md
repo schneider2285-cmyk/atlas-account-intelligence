@@ -30,6 +30,16 @@ The app follows a layered architecture:
 - `src/ui/`
   - dashboard, kanban, strategy brief, and org explorer components
   - connector health, trend visualization, and full agent workbench modules
+  - strategic command center + Perplexity dossier panel
+
+## Data Sources
+
+Current runtime blends two sources:
+
+- Connector simulation layer (`src/infrastructure/connectors/*`) for deterministic signal generation.
+- Imported research dossier from your Perplexity prototype:
+  - `src/fixtures/perplexityDossiers.json`
+  - surfaced in the Command Center as "Perplexity Intelligence Dossier"
 
 ## Supabase Configuration
 

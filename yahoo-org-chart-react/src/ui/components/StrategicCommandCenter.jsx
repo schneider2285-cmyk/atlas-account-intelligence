@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { getPerplexityDossier } from "../../fixtures/perplexityDossierIndex";
+import { DeepIntelligencePanel } from "./DeepIntelligencePanel";
 
 function impactScore(signal) {
   const direction = signal.direction === "positive" ? 1 : -1;
@@ -124,6 +126,7 @@ export function StrategicCommandCenter({ workspace }) {
 
   const orgStats = useMemo(() => summarizeOrgTree(orgChart), [orgChart]);
   const actionRows = useMemo(() => toActionRows(insights), [insights]);
+  const dossier = useMemo(() => getPerplexityDossier(activeOpportunity?.account), [activeOpportunity]);
 
   const influenceCounts = contacts.reduce(
     (counts, contact) => {
@@ -352,6 +355,8 @@ export function StrategicCommandCenter({ workspace }) {
           </div>
         </article>
       </div>
+
+      {dossier ? <DeepIntelligencePanel dossier={dossier} accountName={activeOpportunity.account.name} /> : null}
     </section>
   );
 }
