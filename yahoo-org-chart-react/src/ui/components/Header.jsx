@@ -6,6 +6,9 @@ export function Header({
   onRefresh,
   refreshing,
   userEmail,
+  role,
+  orgId,
+  readOnly,
   onSignOut
 }) {
   const views = [
@@ -28,6 +31,9 @@ export function Header({
       <div className="atlas-header-controls">
         <div className="session-row">
           <span>{userEmail || "Authenticated user"}</span>
+          <span className="role-chip">{role || "manager"}</span>
+          {orgId ? <span className="org-chip">Org {orgId.slice(0, 8)}</span> : null}
+          {readOnly ? <span className="readonly-chip">Read-only</span> : null}
           <button type="button" className="signout-btn" onClick={onSignOut}>
             Sign Out
           </button>

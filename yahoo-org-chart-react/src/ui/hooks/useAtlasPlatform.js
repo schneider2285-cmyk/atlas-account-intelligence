@@ -3,7 +3,7 @@ import { AtlasPlatformService } from "../../application/atlasPlatformService";
 
 const service = new AtlasPlatformService();
 
-export function useAtlasPlatform({ accessToken = "", enabled = true } = {}) {
+export function useAtlasPlatform({ accessToken = "", enabled = true, allowPersistence = true } = {}) {
   const [workspace, setWorkspace] = useState(null);
   const [loading, setLoading] = useState(Boolean(enabled));
   const [error, setError] = useState("");
@@ -24,9 +24,12 @@ export function useAtlasPlatform({ accessToken = "", enabled = true } = {}) {
     service.setAccessToken(accessToken);
 
     try {
-      const result = await service.buildDailyWorkspace({ date: new Date().toISOString() });
+      const result = await service.buildDailyWorkspace({
+        date: new Date().toISOString(),
+        allowPersistence
+      });
       setWorkspace(result);
-      if (result.persistenceWarnings?.length) {
+      if (allowPersistence && result.persistenceWarnings?.length) {
         setError(`Read-only mode: ${result.persistenceWarnings[0]}`);
       }
     } catch (err) {
@@ -35,7 +38,7 @@ export function useAtlasPlatform({ accessToken = "", enabled = true } = {}) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [accessToken, enabled]);
+  }, [accessToken, enabled, allowPersistence]);
 
   useEffect(() => {
     load();
@@ -44,6 +47,10 @@ export function useAtlasPlatform({ accessToken = "", enabled = true } = {}) {
   const moveKanbanCard = useCallback(
     async (cardId, direction) => {
       if (!workspace) return;
+      if (!allowPersistence) {
+        setError("Your role is read-only. Ask an admin or manager to move outreach cards.");
+        return;
+      }
 
       try {
         const nextKanban = await service.moveKanbanCard({
@@ -65,7 +72,7 @@ export function useAtlasPlatform({ accessToken = "", enabled = true } = {}) {
         setError(err instanceof Error ? err.message : "Failed to move kanban card.");
       }
     },
-    [workspace]
+    [workspace, allowPersistence]
   );
 
   const metrics = useMemo(() => {
@@ -100,6 +107,7 @@ export function useAtlasPlatform({ accessToken = "", enabled = true } = {}) {
     loading,
     refreshing,
     error,
+    allowPersistence,
     refresh: () => load({ refresh: true }),
     moveKanbanCard
   };

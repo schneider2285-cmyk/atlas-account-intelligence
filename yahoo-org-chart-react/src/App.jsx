@@ -32,7 +32,8 @@ export default function App() {
 
   const { workspace, metrics, loading, refreshing, error, refresh, moveKanbanCard } = useAtlasPlatform({
     accessToken: auth.accessToken,
-    enabled: auth.isAuthenticated
+    enabled: auth.isAuthenticated,
+    allowPersistence: auth.canPersist
   });
 
   if (!auth.isAuthenticated) {
@@ -62,13 +63,18 @@ export default function App() {
         onRefresh={refresh}
         refreshing={refreshing}
         userEmail={auth.userEmail}
+        role={auth.role}
+        orgId={auth.orgId}
+        readOnly={!auth.canPersist}
         onSignOut={auth.signOut}
       />
 
       {error ? <div className="inline-error">{error}</div> : null}
 
       {activeView === "dashboard" && <Dashboard workspace={workspace} metrics={metrics} />}
-      {activeView === "kanban" && <OutreachKanban kanban={workspace.kanban} onMoveCard={moveKanbanCard} />}
+      {activeView === "kanban" && (
+        <OutreachKanban kanban={workspace.kanban} onMoveCard={moveKanbanCard} readOnly={!auth.canPersist} />
+      )}
       {activeView === "org" && (
         <OrgChartExplorer
           opportunities={workspace.opportunities}

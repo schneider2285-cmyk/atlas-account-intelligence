@@ -168,7 +168,7 @@ export class AtlasPlatformService {
     }
   }
 
-  async buildDailyWorkspace({ date = new Date().toISOString() } = {}) {
+  async buildDailyWorkspace({ date = new Date().toISOString(), allowPersistence = true } = {}) {
     const runAt = new Date().toISOString();
 
     const [accounts, contacts, orgRows, persistedCards, scoreHistoryRows] = await Promise.all([
@@ -240,33 +240,36 @@ export class AtlasPlatformService {
 
     const kanbanCards = reconcileKanbanCards(scoredOpportunities, agentInsightsByAccount, persistedCards);
 
-    const persistenceResults = await Promise.allSettled([
-      this.repository.writeSignals(allSignals),
-      this.repository.writeOpportunities(
-        scoredOpportunities.map((opportunity) => ({
-          accountId: opportunity.accountId,
-          score: opportunity.score,
-          band: opportunity.band,
-          drivers: opportunity.drivers,
-          updatedAt: runAt
-        }))
-      ),
-      this.repository.writeBrief({
-        id: `brief-${new Date(date).toISOString().slice(0, 10)}`,
-        generatedAt: strategyBrief.generatedAt,
-        headline: strategyBrief.headline,
-        markdown: strategyBrief.markdown
-      }),
-      this.repository.appendActivities(activityRows),
-      this.repository.appendAgentRuns(agentRunRows),
-      this.repository.appendConnectorRuns(connectorRunRows),
-      this.repository.appendScoreHistory(scoreRows),
-      this.repository.upsertKanbanCards(kanbanCards)
-    ]);
+    let persistenceWarnings = [];
+    if (allowPersistence) {
+      const persistenceResults = await Promise.allSettled([
+        this.repository.writeSignals(allSignals),
+        this.repository.writeOpportunities(
+          scoredOpportunities.map((opportunity) => ({
+            accountId: opportunity.accountId,
+            score: opportunity.score,
+            band: opportunity.band,
+            drivers: opportunity.drivers,
+            updatedAt: runAt
+          }))
+        ),
+        this.repository.writeBrief({
+          id: `brief-${new Date(date).toISOString().slice(0, 10)}`,
+          generatedAt: strategyBrief.generatedAt,
+          headline: strategyBrief.headline,
+          markdown: strategyBrief.markdown
+        }),
+        this.repository.appendActivities(activityRows),
+        this.repository.appendAgentRuns(agentRunRows),
+        this.repository.appendConnectorRuns(connectorRunRows),
+        this.repository.appendScoreHistory(scoreRows),
+        this.repository.upsertKanbanCards(kanbanCards)
+      ]);
 
-    const persistenceWarnings = persistenceResults
-      .filter((result) => result.status === "rejected")
-      .map((result) => String(result.reason?.message || result.reason || "Unknown persistence error"));
+      persistenceWarnings = persistenceResults
+        .filter((result) => result.status === "rejected")
+        .map((result) => String(result.reason?.message || result.reason || "Unknown persistence error"));
+    }
 
     const nextScoreHistory = [...scoreHistoryRows, ...scoreRows].slice(-240);
 

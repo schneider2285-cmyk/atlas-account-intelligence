@@ -91,6 +91,35 @@ p {
   font-size: 0.82rem;
 }
 
+.role-chip,
+.org-chip,
+.readonly-chip {
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  border: 1px solid transparent;
+}
+
+.role-chip {
+  border-color: #c7d4e8;
+  background: #eef4ff;
+  color: #27496f;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.org-chip {
+  border-color: #d6d0c7;
+  background: #f7f2e9;
+  color: #5b6878;
+}
+
+.readonly-chip {
+  border-color: #e6c8ce;
+  background: #fff1f4;
+  color: #8b1d3d;
+}
+
 .signout-btn {
   border: 1px solid #e4c4cd;
   border-radius: 999px;
@@ -672,6 +701,11 @@ th {
   font-size: 0.75rem;
   padding: 0.35rem 0.4rem;
   cursor: pointer;
+}
+
+.kanban-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .org-toolbar {

@@ -59,14 +59,23 @@ async function authRequest(path, payload) {
   return text ? JSON.parse(text) : {};
 }
 
-function toSessionPayload(response) {
+function toSessionPayload(response, profile = null) {
   return {
     accessToken: response.access_token,
     refreshToken: response.refresh_token,
     expiresIn: response.expires_in,
     tokenType: response.token_type,
     user: response.user,
+    profile,
     createdAt: new Date().toISOString()
+  };
+}
+
+function resolveProfile(profile) {
+  if (profile) return profile;
+  return {
+    role: "manager",
+    orgId: "00000000-0000-0000-0000-000000000001"
   };
 }
 
@@ -83,16 +92,65 @@ export function hasSupabaseAuthConfig() {
   return Boolean(url && anonKey);
 }
 
+export async function fetchUserProfile(accessToken, userId) {
+  const { url, anonKey } = getConfig();
+
+  if (!url || !anonKey || !accessToken || !userId) {
+    return null;
+  }
+
+  const query = new URLSearchParams({
+    select: "org_id,role",
+    user_id: `eq.${userId}`,
+    limit: "1"
+  });
+
+  const response = await fetch(`${url}/rest/v1/atlas_user_profiles?${query.toString()}`, {
+    method: "GET",
+    headers: {
+      apikey: anonKey,
+      Authorization: `Bearer ${accessToken}`,
+      "Accept-Profile": "public"
+    }
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const rows = await response.json();
+  const row = rows[0];
+  if (!row) return null;
+
+  return {
+    orgId: row.org_id,
+    role: row.role
+  };
+}
+
+export async function hydrateSessionProfile(session) {
+  if (!session?.accessToken || !session?.user?.id) return session;
+  const profile = resolveProfile(await fetchUserProfile(session.accessToken, session.user.id));
+  const nextSession = {
+    ...session,
+    profile
+  };
+  persistSession(nextSession);
+  return nextSession;
+}
+
 export async function signInWithPassword(email, password) {
   const response = await authRequest("/token?grant_type=password", { email, password });
-  const session = toSessionPayload(response);
+  const profile = resolveProfile(await fetchUserProfile(response.access_token, response.user?.id));
+  const session = toSessionPayload(response, profile);
   persistSession(session);
   return session;
 }
 
 export async function signUpWithPassword(email, password) {
   const response = await authRequest("/signup", { email, password });
-  const session = response.access_token ? toSessionPayload(response) : null;
+  const profile = resolveProfile(await fetchUserProfile(response.access_token, response.user?.id));
+  const session = response.access_token ? toSessionPayload(response, profile) : null;
 
   if (session) {
     persistSession(session);
