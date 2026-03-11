@@ -933,6 +933,438 @@ pre {
   font-size: 0.84rem;
 }
 
+.command-shell {
+  border: 1px solid #d7ccb8;
+  background:
+    linear-gradient(145deg, rgba(255, 252, 246, 0.94), rgba(245, 237, 225, 0.92)),
+    repeating-linear-gradient(
+      -25deg,
+      rgba(164, 129, 88, 0.04),
+      rgba(164, 129, 88, 0.04) 14px,
+      rgba(255, 255, 255, 0) 14px,
+      rgba(255, 255, 255, 0) 30px
+    );
+}
+
+.command-head {
+  align-items: start;
+}
+
+.command-search input {
+  border: 1px solid #cebfa9;
+  border-radius: 10px;
+  background: #fffefb;
+  min-width: min(34vw, 360px);
+  padding: 0.5rem 0.65rem;
+  font: inherit;
+}
+
+.command-account-switcher {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.command-account-switcher button {
+  border: 1px solid #d7cab7;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.58rem 0.7rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.command-account-switcher button span {
+  font-size: 0.83rem;
+  color: #4f5f70;
+  font-weight: 600;
+}
+
+.command-account-switcher button strong {
+  font-size: 0.93rem;
+  color: #1e3f5b;
+  border: 1px solid #c8dbcf;
+  background: #edf6f1;
+  border-radius: 999px;
+  min-width: 2.25rem;
+  text-align: center;
+  padding: 0.1rem 0.45rem;
+}
+
+.command-account-switcher button.active {
+  border-color: #a27f57;
+  background: linear-gradient(135deg, #fff9ef, #f4e9d9);
+  box-shadow: inset 0 0 0 1px rgba(162, 127, 87, 0.25);
+}
+
+.command-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 0.8rem;
+}
+
+.command-metric {
+  border: 1px solid #dcccb8;
+  border-radius: 12px;
+  padding: 0.7rem 0.75rem;
+  background: #fff;
+  min-height: 5.3rem;
+}
+
+.command-metric p {
+  color: #5d6f82;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.command-metric h3 {
+  margin-top: 0.28rem;
+  font-size: 1.4rem;
+}
+
+.command-metric span {
+  display: block;
+  margin-top: 0.2rem;
+  color: #4e6274;
+  font-size: 0.8rem;
+}
+
+.command-metric.score {
+  border-left: 4px solid #0b6e4f;
+}
+
+.command-metric.momentum {
+  border-left: 4px solid #2a6fbb;
+}
+
+.command-metric.value {
+  border-left: 4px solid #af5d1f;
+}
+
+.command-metric.trend {
+  border-left: 4px solid #7f4ea5;
+}
+
+.sparkline {
+  letter-spacing: 0.08em;
+  font-family: "SFMono-Regular", "Menlo", monospace;
+}
+
+.command-grid-two {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.command-card {
+  border: 1px solid #decfbc;
+  border-radius: 12px;
+  background: #fffdf9;
+  padding: 0.7rem;
+}
+
+.command-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid #ede3d5;
+  margin-bottom: 0.55rem;
+}
+
+.command-card h3 {
+  font-size: 1rem;
+}
+
+.command-card header p {
+  color: #627386;
+  font-size: 0.78rem;
+}
+
+.signal-tape {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.signal-tape li {
+  border: 1px solid #e8ddcc;
+  border-radius: 10px;
+  background: #fff;
+  padding: 0.45rem 0.5rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.45rem;
+}
+
+.signal-tape strong {
+  font-size: 0.85rem;
+}
+
+.signal-tape p {
+  margin-top: 0.1rem;
+  color: #5e6f80;
+  font-size: 0.79rem;
+}
+
+.signal-tape small {
+  margin-top: 0.2rem;
+  color: #728293;
+  font-size: 0.72rem;
+  display: block;
+}
+
+.dir-good,
+.dir-risk {
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.43rem;
+  height: fit-content;
+}
+
+.dir-good {
+  background: #e3f5eb;
+  color: #1b7d59;
+}
+
+.dir-risk {
+  background: #fde7e6;
+  color: #a43634;
+}
+
+.category-pressure-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.category-row {
+  border: 1px solid #e8ddcd;
+  border-radius: 10px;
+  padding: 0.42rem 0.5rem;
+  background: #fff;
+}
+
+.category-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.category-top strong {
+  font-size: 0.84rem;
+}
+
+.category-top span {
+  font-size: 0.74rem;
+  color: #5f7082;
+}
+
+.pressure-bar {
+  height: 0.45rem;
+  border-radius: 999px;
+  background: #f0e7d8;
+}
+
+.pressure-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.pressure-fill.positive {
+  background: linear-gradient(90deg, #2f8b66, #57b38b);
+}
+
+.pressure-fill.negative {
+  background: linear-gradient(90deg, #bb4f43, #e17a5b);
+}
+
+.committee-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.committee-list article {
+  border: 1px solid #e7ddcd;
+  border-radius: 10px;
+  padding: 0.45rem 0.55rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.45rem;
+  background: #fff;
+}
+
+.committee-list strong {
+  font-size: 0.83rem;
+}
+
+.committee-list p {
+  font-size: 0.76rem;
+  color: #617385;
+}
+
+.influence-chip {
+  border-radius: 999px;
+  font-size: 0.68rem;
+  padding: 0.12rem 0.48rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.influence-high {
+  background: #dff6ea;
+  color: #1d7a56;
+}
+
+.influence-medium {
+  background: #fff1d8;
+  color: #8d5f10;
+}
+
+.influence-low {
+  background: #edeef2;
+  color: #5f6b77;
+}
+
+.org-snapshot {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.org-leader {
+  border: 1px solid #d8c6b2;
+  border-radius: 10px;
+  padding: 0.55rem;
+  background: linear-gradient(135deg, #fff7e8, #f4e6d1);
+}
+
+.org-leader strong {
+  font-size: 0.9rem;
+}
+
+.org-leader p {
+  font-size: 0.78rem;
+  color: #5d6f81;
+}
+
+.org-directs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.org-directs article {
+  border: 1px solid #e6dccd;
+  border-radius: 10px;
+  padding: 0.44rem;
+  background: #fff;
+}
+
+.org-directs strong {
+  font-size: 0.8rem;
+}
+
+.org-directs p {
+  font-size: 0.75rem;
+  color: #637587;
+}
+
+.play-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.play-list li {
+  border: 1px solid #e8dece;
+  border-radius: 10px;
+  background: #fff;
+  padding: 0.45rem 0.5rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.45rem;
+}
+
+.play-list strong {
+  font-size: 0.8rem;
+}
+
+.play-list p {
+  margin-top: 0.1rem;
+  font-size: 0.77rem;
+  color: #5f7081;
+}
+
+.priority-tag {
+  border-radius: 999px;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.13rem 0.44rem;
+  height: fit-content;
+}
+
+.priority-tag.high {
+  background: #fde5e1;
+  color: #a83830;
+}
+
+.priority-tag.medium {
+  background: #fff0d5;
+  color: #8e5c08;
+}
+
+.priority-tag.low {
+  background: #e4f2e9;
+  color: #246a49;
+}
+
+.flight-deck {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.flight-deck > div {
+  border: 1px solid #e8ddcf;
+  border-radius: 10px;
+  background: #fff;
+  padding: 0.44rem 0.5rem;
+}
+
+.flight-deck p {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #607081;
+}
+
+.flight-deck strong {
+  margin-top: 0.2rem;
+  display: block;
+  font-size: 0.86rem;
+}
+
+.flight-deck .full {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 1100px) {
   .metric-grid,
   .metric-grid-four {
@@ -950,6 +1382,14 @@ pre {
 
   .kanban-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .command-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .command-grid-two {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -985,6 +1425,24 @@ pre {
 
   .kanban-grid,
   .org-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .command-search input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .command-account-switcher {
+    grid-template-columns: 1fr;
+  }
+
+  .command-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .org-directs,
+  .flight-deck {
     grid-template-columns: 1fr;
   }
 }

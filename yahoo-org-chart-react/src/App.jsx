@@ -7,6 +7,7 @@ import { OutreachKanban } from "./ui/components/OutreachKanban";
 import { OrgChartExplorer } from "./ui/components/OrgChartExplorer";
 import { StrategyBrief } from "./ui/components/StrategyBrief";
 import { AuthGate } from "./ui/components/AuthGate";
+import { StrategicCommandCenter } from "./ui/components/StrategicCommandCenter";
 
 function LoadingState() {
   return (
@@ -27,7 +28,7 @@ function ErrorState({ message }) {
 }
 
 export default function App() {
-  const [activeView, setActiveView] = useState("dashboard");
+  const [activeView, setActiveView] = useState("command");
   const auth = useSupabaseAuth();
 
   const { workspace, metrics, loading, refreshing, error, refresh, moveKanbanCard } = useAtlasPlatform({
@@ -71,6 +72,7 @@ export default function App() {
 
       {error ? <div className="inline-error">{error}</div> : null}
 
+      {activeView === "command" && <StrategicCommandCenter workspace={workspace} />}
       {activeView === "dashboard" && <Dashboard workspace={workspace} metrics={metrics} />}
       {activeView === "kanban" && (
         <OutreachKanban kanban={workspace.kanban} onMoveCard={moveKanbanCard} readOnly={!auth.canPersist} />

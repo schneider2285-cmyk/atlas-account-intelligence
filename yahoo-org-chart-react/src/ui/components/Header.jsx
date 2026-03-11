@@ -12,6 +12,7 @@ export function Header({
   onSignOut
 }) {
   const views = [
+    { id: "command", label: "Command Center" },
     { id: "dashboard", label: "Dashboard" },
     { id: "kanban", label: "Outreach Kanban" },
     { id: "org", label: "Org Chart Explorer" },
