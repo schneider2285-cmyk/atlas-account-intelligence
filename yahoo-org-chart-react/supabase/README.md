@@ -31,3 +31,4 @@ Create `.env` from `.env.example` and set:
 - RLS is enabled with open `anon`/`authenticated` policies for development convenience; restrict before production.
 - Production hardening policies are provided in `policies/production_rls.sql`.
 - Transitional hardening (anon read-only) is provided in `policies/transitional_rls.sql`.
+- The frontend now has an email/password auth gate; strict production RLS expects authenticated sessions.

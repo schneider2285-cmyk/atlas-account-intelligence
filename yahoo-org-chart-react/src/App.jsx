@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useAtlasPlatform } from "./ui/hooks/useAtlasPlatform";
+import { useSupabaseAuth } from "./ui/hooks/useSupabaseAuth";
 import { Header } from "./ui/components/Header";
 import { Dashboard } from "./ui/components/Dashboard";
 import { OutreachKanban } from "./ui/components/OutreachKanban";
 import { OrgChartExplorer } from "./ui/components/OrgChartExplorer";
 import { StrategyBrief } from "./ui/components/StrategyBrief";
+import { AuthGate } from "./ui/components/AuthGate";
 
 function LoadingState() {
   return (
@@ -25,8 +27,26 @@ function ErrorState({ message }) {
 }
 
 export default function App() {
-  const { workspace, metrics, loading, refreshing, error, refresh, moveKanbanCard } = useAtlasPlatform();
   const [activeView, setActiveView] = useState("dashboard");
+  const auth = useSupabaseAuth();
+
+  const { workspace, metrics, loading, refreshing, error, refresh, moveKanbanCard } = useAtlasPlatform({
+    accessToken: auth.accessToken,
+    enabled: auth.isAuthenticated
+  });
+
+  if (!auth.isAuthenticated) {
+    return (
+      <AuthGate
+        configured={auth.configured}
+        loading={auth.loading}
+        error={auth.error}
+        info={auth.info}
+        onSignIn={auth.signIn}
+        onSignUp={auth.signUp}
+      />
+    );
+  }
 
   if (loading) return <LoadingState />;
   if (error && !workspace) return <ErrorState message={error} />;
@@ -41,6 +61,8 @@ export default function App() {
         dataSource={workspace.dataSource}
         onRefresh={refresh}
         refreshing={refreshing}
+        userEmail={auth.userEmail}
+        onSignOut={auth.signOut}
       />
 
       {error ? <div className="inline-error">{error}</div> : null}

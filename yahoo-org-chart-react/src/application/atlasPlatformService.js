@@ -162,6 +162,12 @@ export class AtlasPlatformService {
     this.connectors = connectors;
   }
 
+  setAccessToken(token) {
+    if (typeof this.repository.setAccessToken === "function") {
+      this.repository.setAccessToken(token);
+    }
+  }
+
   async buildDailyWorkspace({ date = new Date().toISOString() } = {}) {
     const runAt = new Date().toISOString();
 

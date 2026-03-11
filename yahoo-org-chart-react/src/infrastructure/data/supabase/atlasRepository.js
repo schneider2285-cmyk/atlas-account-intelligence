@@ -217,6 +217,10 @@ export class AtlasRepository {
     return this.supabase.enabled;
   }
 
+  setAccessToken(token) {
+    this.supabase.setAccessToken(token);
+  }
+
   async listAccounts() {
     if (this.usingSupabase) {
       const rows = await this.supabase.select("atlas_accounts");

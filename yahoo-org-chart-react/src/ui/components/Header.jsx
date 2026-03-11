@@ -1,4 +1,13 @@
-export function Header({ activeView, onChangeView, generatedAt, dataSource, onRefresh, refreshing }) {
+export function Header({
+  activeView,
+  onChangeView,
+  generatedAt,
+  dataSource,
+  onRefresh,
+  refreshing,
+  userEmail,
+  onSignOut
+}) {
   const views = [
     { id: "dashboard", label: "Dashboard" },
     { id: "kanban", label: "Outreach Kanban" },
@@ -17,6 +26,13 @@ export function Header({ activeView, onChangeView, generatedAt, dataSource, onRe
       </div>
 
       <div className="atlas-header-controls">
+        <div className="session-row">
+          <span>{userEmail || "Authenticated user"}</span>
+          <button type="button" className="signout-btn" onClick={onSignOut}>
+            Sign Out
+          </button>
+        </div>
+
         <button type="button" className="refresh-btn" onClick={onRefresh} disabled={refreshing}>
           {refreshing ? "Refreshing..." : "Refresh Signals"}
         </button>

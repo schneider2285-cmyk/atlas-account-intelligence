@@ -22,10 +22,15 @@ export class SupabaseClient {
     this.url = url;
     this.anonKey = anonKey;
     this.schema = schema;
+    this.accessToken = "";
   }
 
   get enabled() {
     return Boolean(this.url && this.anonKey);
+  }
+
+  setAccessToken(token) {
+    this.accessToken = token || "";
   }
 
   async select(table, options = {}) {
@@ -67,7 +72,7 @@ export class SupabaseClient {
       ...init,
       headers: {
         apikey: this.anonKey,
-        Authorization: `Bearer ${this.anonKey}`,
+        Authorization: `Bearer ${this.accessToken || this.anonKey}`,
         "Content-Type": "application/json",
         "Accept-Profile": this.schema,
         ...(init?.headers || {})

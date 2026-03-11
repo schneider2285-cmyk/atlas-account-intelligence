@@ -3,17 +3,25 @@ import { AtlasPlatformService } from "../../application/atlasPlatformService";
 
 const service = new AtlasPlatformService();
 
-export function useAtlasPlatform() {
+export function useAtlasPlatform({ accessToken = "", enabled = true } = {}) {
   const [workspace, setWorkspace] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(enabled));
   const [error, setError] = useState("");
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async ({ refresh = false } = {}) => {
+    if (!enabled) {
+      setLoading(false);
+      setWorkspace(null);
+      setError("");
+      return;
+    }
+
     if (refresh) setRefreshing(true);
     else setLoading(true);
 
     setError("");
+    service.setAccessToken(accessToken);
 
     try {
       const result = await service.buildDailyWorkspace({ date: new Date().toISOString() });
@@ -27,7 +35,7 @@ export function useAtlasPlatform() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [accessToken, enabled]);
 
   useEffect(() => {
     load();

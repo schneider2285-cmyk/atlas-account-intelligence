@@ -40,6 +40,15 @@ Set the following env vars to enable Supabase persistence:
 
 Without these values, the app runs entirely in in-memory mode with seeded fixture data.
 
+## Auth Mode (for Strict RLS)
+
+The app now supports Supabase email/password auth directly in UI:
+
+- Sign In with existing Supabase Auth user
+- Create Account from login gate (if project allows signup)
+
+When strict `production_rls.sql` is active, users must authenticate before Atlas data loads.
+
 ## Supabase Migrations
 
 Migrations are in [`supabase/migrations`](./supabase/migrations):
