@@ -85,6 +85,7 @@ export function StrategicCommandCenter({ workspace }) {
   const opportunities = workspace.opportunities || [];
   const [selectedAccountId, setSelectedAccountId] = useState(opportunities[0]?.accountId || "");
   const [query, setQuery] = useState("");
+  const [showDossier, setShowDossier] = useState(false);
 
   const activeOpportunity = useMemo(
     () => opportunities.find((opportunity) => opportunity.accountId === selectedAccountId) || opportunities[0],
@@ -126,7 +127,13 @@ export function StrategicCommandCenter({ workspace }) {
 
   const orgStats = useMemo(() => summarizeOrgTree(orgChart), [orgChart]);
   const actionRows = useMemo(() => toActionRows(insights), [insights]);
-  const dossier = useMemo(() => getPerplexityDossier(activeOpportunity?.account), [activeOpportunity]);
+  const dossier = useMemo(() => {
+    try {
+      return getPerplexityDossier(activeOpportunity?.account);
+    } catch {
+      return null;
+    }
+  }, [activeOpportunity]);
 
   const influenceCounts = contacts.reduce(
     (counts, contact) => {
@@ -356,7 +363,24 @@ export function StrategicCommandCenter({ workspace }) {
         </article>
       </div>
 
-      {dossier ? <DeepIntelligencePanel dossier={dossier} accountName={activeOpportunity.account.name} /> : null}
+      <article className="command-card dossier-toggle-card">
+        <header>
+          <h3>Deep Research Layer</h3>
+          <p>Perplexity dossier import ({dossier?.departments?.length || 0} departments)</p>
+        </header>
+        <div className="dossier-toggle-actions">
+          <button type="button" onClick={() => setShowDossier((value) => !value)}>
+            {showDossier ? "Hide Deep Dossier" : "Load Deep Dossier"}
+          </button>
+          <span>
+            {showDossier
+              ? "Loaded: strategic notes, targets, open roles, and initiatives."
+              : "Keeps the command center fast by loading this layer on demand."}
+          </span>
+        </div>
+      </article>
+
+      {showDossier && dossier ? <DeepIntelligencePanel dossier={dossier} accountName={activeOpportunity.account.name} /> : null}
     </section>
   );
 }

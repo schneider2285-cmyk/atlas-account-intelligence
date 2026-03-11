@@ -1524,6 +1524,34 @@ pre {
   color: #345f86;
 }
 
+.dossier-toggle-card {
+  margin-bottom: 0.75rem;
+}
+
+.dossier-toggle-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.dossier-toggle-actions button {
+  border: 1px solid #c7b491;
+  border-radius: 999px;
+  background: #fff8ea;
+  color: #6d4b1f;
+  padding: 0.35rem 0.75rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dossier-toggle-actions span {
+  color: #5f7284;
+  font-size: 0.79rem;
+}
+
 @media (max-width: 1100px) {
   .metric-grid,
   .metric-grid-four {
