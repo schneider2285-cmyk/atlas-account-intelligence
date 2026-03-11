@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Sales AI Guide helps revenue teams design, govern, and scale trusted AI systems that improve pipeline, coaching, and forecast reliability."
+    />
+    <title>Sales AI Guide | Premium AI Revenue Systems</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./script.js" defer></script>
+  </head>
+  <body>
+    <div class="background-atmosphere" aria-hidden="true"></div>
+
+    <header class="site-header" id="top">
+      <div class="container nav-wrap">
+        <a class="brand" href="#top" aria-label="Sales AI Guide home">
+          <span class="brand-mark">SAG</span>
+          <span class="brand-text">Sales AI Guide</span>
+        </a>
+
+        <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mainNav">Menu</button>
+
+        <nav class="main-nav" id="mainNav" aria-label="Main navigation">
+          <a href="#platform">Platform</a>
+          <a href="#impact">Impact Studio</a>
+          <a href="#proof">Proof</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#faq">FAQ</a>
+          <a href="#book" class="btn btn-nav">Book Strategy Call</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero section" id="hero">
+        <div class="container hero-grid">
+          <div class="hero-copy reveal">
+            <p class="eyebrow">For CROs, RevOps leaders, and GTM teams that value control</p>
+            <h1>Ship AI Revenue Systems Your Team Actually Trusts</h1>
+            <p class="lead">
+              We build governed prospecting, deal coaching, and forecast workflows with measurable impact in 30 days,
+              without sacrificing security, brand voice, or legal confidence.
+            </p>
+
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="#book">Get a 30-Day Blueprint</a>
+              <a class="btn btn-ghost" href="#impact">Model Revenue Impact</a>
+            </div>
+
+            <ul class="hero-stats" aria-label="Key outcomes">
+              <li>
+                <strong>+34%</strong>
+                <span>Qualified pipeline lift</span>
+              </li>
+              <li>
+                <strong>11.2 hrs</strong>
+                <span>Weekly rep time recovered</span>
+              </li>
+              <li>
+                <strong>99.2%</strong>
+                <span>Policy-safe output rate</span>
+              </li>
+            </ul>
+          </div>
+
+          <aside class="pilot-card reveal delay-1" aria-label="Pilot configuration">
+            <h2>Pilot Control Room</h2>
+            <p>Preview the first-month operating plan used for enterprise GTM deployments.</p>
+            <ol>
+              <li>
+                <span>Week 1</span>
+                <p>Risk and workflow audit across prospecting, call coaching, and CRM logging.</p>
+              </li>
+              <li>
+                <span>Week 2</span>
+                <p>Prompt architecture, guardrails, and role-based access controls.</p>
+              </li>
+              <li>
+                <span>Week 3</span>
+                <p>Rep onboarding, manager scorecards, and QA calibration.</p>
+              </li>
+              <li>
+                <span>Week 4</span>
+                <p>Impact review with scale sequence by segment and region.</p>
+              </li>
+            </ol>
+            <p class="pilot-note">Includes governance templates for security, legal, and frontline enablement.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="trust-strip reveal" aria-label="Trusted coverage">
+        <div class="container trust-row">
+          <p>Serving teams in regulated and high-complexity GTM environments:</p>
+          <ul>
+            <li>Cybersecurity</li>
+            <li>Fintech</li>
+            <li>Healthcare IT</li>
+            <li>Enterprise SaaS</li>
+            <li>Industrial Services</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section" id="platform">
+        <div class="container">
+          <div class="section-head reveal">
+            <p class="eyebrow">Platform system</p>
+            <h2>Designed for performance, governance, and rep adoption</h2>
+          </div>
+          <div class="feature-grid">
+            <article class="feature-card reveal delay-1">
+              <h3>Prospecting Intelligence</h3>
+              <p>Build account research, messaging drafts, and intent summaries directly into seller workflows.</p>
+              <ul>
+                <li>Signal-based targeting by ICP and role</li>
+                <li>Voice-safe first-touch generation</li>
+                <li>Automated pre-send policy checks</li>
+              </ul>
+            </article>
+            <article class="feature-card reveal delay-2">
+              <h3>Deal Coaching Layer</h3>
+              <p>Convert call recordings and notes into next-action plans, risk alerts, and manager coaching prompts.</p>
+              <ul>
+                <li>MEDDICC/SPICED scoring alignment</li>
+                <li>Close-plan and follow-up generation</li>
+                <li>Forecast risk visibility by stage</li>
+              </ul>
+            </article>
+            <article class="feature-card reveal delay-3">
+              <h3>Trust Architecture</h3>
+              <p>Apply versioned prompts, permissions, and audit trails so AI use remains controlled and compliant.</p>
+              <ul>
+                <li>Role and workspace boundaries</li>
+                <li>PII and prohibited-content filters</li>
+                <li>Prompt/output lineage reporting</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-contrast" id="impact">
+        <div class="container impact-layout">
+          <div class="section-head reveal">
+            <p class="eyebrow">Impact Studio</p>
+            <h2>Model your business case before launch</h2>
+            <p>Use your team inputs to estimate annual productivity and pipeline upside from the first implementation wave.</p>
+          </div>
+
+          <form class="impact-form reveal delay-1" id="impactForm" novalidate>
+            <label>
+              Number of quota-carrying reps
+              <input id="reps" type="number" min="1" value="28" required />
+            </label>
+            <label>
+              Avg fully loaded rep cost ($/yr)
+              <input id="repCost" type="number" min="1" value="145000" required />
+            </label>
+            <label>
+              Hours saved per rep each week
+              <input id="hoursSaved" type="number" min="1" value="9" required />
+            </label>
+            <label>
+              Current monthly pipeline ($)
+              <input id="monthlyPipeline" type="number" min="1" value="1250000" required />
+            </label>
+            <label>
+              Expected pipeline lift (%)
+              <input id="pipelineLift" type="number" min="1" max="100" value="16" required />
+            </label>
+            <button class="btn btn-primary" type="submit">Calculate Impact</button>
+          </form>
+
+          <aside class="impact-results reveal delay-2" aria-live="polite" id="impactResults">
+            <h3>Modeled Annual Impact</h3>
+            <p><span>Productivity value</span><strong id="productivityValue">$0</strong></p>
+            <p><span>Pipeline upside</span><strong id="pipelineValue">$0</strong></p>
+            <p class="total-line"><span>Total modeled impact</span><strong id="totalValue">$0</strong></p>
+
+            <div class="confidence-meter">
+              <div class="meter-labels">
+                <span>Confidence Index</span>
+                <strong id="confidenceValue">Baseline</strong>
+              </div>
+              <div class="meter-track" role="img" aria-label="confidence meter">
+                <span id="confidenceFill"></span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section" id="proof">
+        <div class="container proof-grid">
+          <div class="proof-main reveal">
+            <div class="section-head">
+              <p class="eyebrow">Proof</p>
+              <h2>Case outcomes from real deployments</h2>
+            </div>
+
+            <div class="case-tabs" role="tablist" aria-label="Case studies">
+              <button class="case-tab active" role="tab" aria-selected="true" data-case="saas">Mid-Market SaaS</button>
+              <button class="case-tab" role="tab" aria-selected="false" data-case="cyber">Enterprise Cybersecurity</button>
+              <button class="case-tab" role="tab" aria-selected="false" data-case="health">Healthcare IT</button>
+            </div>
+
+            <article class="case-panel" id="casePanel" aria-live="polite">
+              <h3>Mid-Market SaaS</h3>
+              <p>Rebuilt outbound and manager coaching workflows with governed AI prompts and CRM-grade instrumentation.</p>
+              <dl>
+                <div><dt>Qualified pipeline</dt><dd>+39% in 2 quarters</dd></div>
+                <div><dt>Ramp time</dt><dd>-24%</dd></div>
+                <div><dt>Forecast variance</dt><dd>-19%</dd></div>
+              </dl>
+            </article>
+          </div>
+
+          <aside class="readiness-card reveal delay-1" id="readiness">
+            <h3>AI Readiness Scorecard</h3>
+            <p>Complete this in under 90 seconds to see your current rollout readiness tier.</p>
+            <form id="readinessForm" novalidate>
+              <label>Data quality in CRM
+                <select name="data" required>
+                  <option value="">Select</option>
+                  <option value="1">Low</option>
+                  <option value="2">Emerging</option>
+                  <option value="3">Strong</option>
+                  <option value="4">Excellent</option>
+                </select>
+              </label>
+              <label>Rep enablement maturity
+                <select name="enablement" required>
+                  <option value="">Select</option>
+                  <option value="1">Low</option>
+                  <option value="2">Emerging</option>
+                  <option value="3">Strong</option>
+                  <option value="4">Excellent</option>
+                </select>
+              </label>
+              <label>Security and legal governance
+                <select name="governance" required>
+                  <option value="">Select</option>
+                  <option value="1">Low</option>
+                  <option value="2">Emerging</option>
+                  <option value="3">Strong</option>
+                  <option value="4">Excellent</option>
+                </select>
+              </label>
+              <label>Manager coaching discipline
+                <select name="coaching" required>
+                  <option value="">Select</option>
+                  <option value="1">Low</option>
+                  <option value="2">Emerging</option>
+                  <option value="3">Strong</option>
+                  <option value="4">Excellent</option>
+                </select>
+              </label>
+              <label>Revenue analytics visibility
+                <select name="analytics" required>
+                  <option value="">Select</option>
+                  <option value="1">Low</option>
+                  <option value="2">Emerging</option>
+                  <option value="3">Strong</option>
+                  <option value="4">Excellent</option>
+                </select>
+              </label>
+
+              <button class="btn btn-ghost" type="submit">Get My Score</button>
+            </form>
+            <p class="score-output" id="scoreOutput">Select your maturity levels to generate your readiness tier.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section section-contrast" id="timeline">
+        <div class="container timeline-grid">
+          <div class="section-head reveal">
+            <p class="eyebrow">Execution</p>
+            <h2>Launch sequence with measurable gates</h2>
+          </div>
+
+          <div class="timeline-nav reveal delay-1" role="tablist" aria-label="Launch stages">
+            <button class="stage-btn active" data-stage="discover">Discover</button>
+            <button class="stage-btn" data-stage="design">Design</button>
+            <button class="stage-btn" data-stage="deploy">Deploy</button>
+            <button class="stage-btn" data-stage="scale">Scale</button>
+          </div>
+
+          <article class="timeline-panel reveal delay-2" id="timelinePanel" aria-live="polite">
+            <h3>Discover</h3>
+            <p>Assess data reliability, segment-level workflow friction, and legal/security requirements across your GTM stack.</p>
+            <ul>
+              <li>Baseline KPI capture and risk mapping</li>
+              <li>Role and channel prioritization matrix</li>
+              <li>Change-management readiness checkpoint</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="pricing">
+        <div class="container">
+          <div class="section-head reveal">
+            <p class="eyebrow">Pricing Architect</p>
+            <h2>Transparent pricing that scales with your team</h2>
+          </div>
+
+          <div class="pricing-controls reveal delay-1">
+            <label class="range-wrap" for="teamSizeRange">
+              Team size: <strong id="teamSizeLabel">30</strong>
+              <input id="teamSizeRange" type="range" min="10" max="300" step="5" value="30" />
+            </label>
+
+            <div class="billing-toggle" role="group" aria-label="Billing cadence">
+              <button class="active" data-billing="monthly" type="button">Monthly</button>
+              <button data-billing="annual" type="button">Annual (save 18%)</button>
+            </div>
+          </div>
+
+          <div class="pricing-grid reveal delay-2">
+            <article class="price-card" data-plan="foundation">
+              <h3>Foundation</h3>
+              <p class="price"><strong>$0</strong><span>/month</span></p>
+              <ul>
+                <li>Single segment rollout</li>
+                <li>Governed prompt library</li>
+                <li>Weekly optimization session</li>
+              </ul>
+            </article>
+            <article class="price-card featured" data-plan="scale">
+              <p class="badge">Most Selected</p>
+              <h3>Scale</h3>
+              <p class="price"><strong>$0</strong><span>/month</span></p>
+              <ul>
+                <li>Multi-team orchestration</li>
+                <li>Manager coaching copilot</li>
+                <li>Security and legal governance reviews</li>
+              </ul>
+            </article>
+            <article class="price-card" data-plan="enterprise">
+              <h3>Enterprise</h3>
+              <p class="price"><strong>$0</strong><span>/month</span></p>
+              <ul>
+                <li>Global multi-region rollout</li>
+                <li>Custom integrations and controls</li>
+                <li>Executive-level impact reporting</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="faq">
+        <div class="container faq-grid">
+          <div class="section-head reveal">
+            <p class="eyebrow">FAQ</p>
+            <h2>What leaders ask before deployment</h2>
+          </div>
+
+          <div class="faq-list reveal delay-1" id="faqList">
+            <article class="faq-item">
+              <button class="faq-question" type="button" aria-expanded="false">How quickly can we see measurable impact?</button>
+              <p class="faq-answer">Most teams see measurable productivity gains in the first 30 days and pipeline conversion impact in 60 to 90 days.</p>
+            </article>
+            <article class="faq-item">
+              <button class="faq-question" type="button" aria-expanded="false">How do you control AI risk and compliance?</button>
+              <p class="faq-answer">Every deployment includes role-based controls, approved prompt versions, audit trails, and policy-safe output checks.</p>
+            </article>
+            <article class="faq-item">
+              <button class="faq-question" type="button" aria-expanded="false">Do you integrate with our existing stack?</button>
+              <p class="faq-answer">Yes. We align with your CRM, call intelligence, enablement, and analytics stack while minimizing process disruption.</p>
+            </article>
+            <article class="faq-item">
+              <button class="faq-question" type="button" aria-expanded="false">What internal team do we need to launch?</button>
+              <p class="faq-answer">Typical launch teams include one RevOps owner, one sales manager, one security/legal stakeholder, and one enablement lead.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-contrast" id="book">
+        <div class="container book-grid">
+          <div class="book-copy reveal">
+            <p class="eyebrow">Next step</p>
+            <h2>Book a private strategy session</h2>
+            <p>We will map your current GTM workflow, identify high-return AI opportunities, and provide a concrete deployment path.</p>
+            <ul>
+              <li>30-minute executive working session</li>
+              <li>Custom impact estimate and launch sequence</li>
+              <li>Security and governance checklist included</li>
+            </ul>
+          </div>
+
+          <form class="book-form reveal delay-1" id="bookForm" novalidate>
+            <label>
+              Full name
+              <input type="text" name="name" required />
+            </label>
+            <label>
+              Work email
+              <input type="email" name="email" required />
+            </label>
+            <label>
+              Company
+              <input type="text" name="company" required />
+            </label>
+            <label>
+              Team size
+              <input type="number" name="team" min="1" required />
+            </label>
+            <label>
+              Primary goal
+              <textarea name="goal" rows="4" placeholder="Increase outbound conversion, improve coaching quality, tighten forecast reliability..." required></textarea>
+            </label>
+            <button class="btn btn-primary" type="submit">Request Session</button>
+            <p class="form-status" id="bookFormStatus" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-row">
+        <p>© 2026 Sales AI Guide. Built for trust-first revenue acceleration.</p>
+        <div>
+          <a href="#">Security</a>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,1 @@
+open -a TextEdit /Users/matthewschneider/Documents/Playground/yahoo-org-chart-react/supabase/migrations/transitional_rls.sql
