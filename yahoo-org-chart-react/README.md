@@ -88,3 +88,8 @@ npm run dev
 ```bash
 npm run build
 ```
+
+## Operations
+
+- Day-2 commands: [`docs/OPERATIONS.md`](./docs/OPERATIONS.md)
+- Production rollout/rollback: [`docs/deployment-runbook.md`](./docs/deployment-runbook.md)
