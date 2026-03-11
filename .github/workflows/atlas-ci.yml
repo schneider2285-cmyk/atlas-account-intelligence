@@ -1,0 +1,31 @@
+name: Atlas CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "codex/**"
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: yahoo-org-chart-react
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: yahoo-org-chart-react/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Atlas checks
+        run: npm run ci
