@@ -11,6 +11,7 @@ const PLACEHOLDER_PATTERNS = [
   /REPLACE_ME/i,
   /TODO\b/i
 ];
+const SQL_KEYWORD_PATTERN = /\b(create|alter|insert|update|delete|drop|grant|revoke|do|comment)\b/i;
 
 function assert(condition, message) {
   if (!condition) {
@@ -51,6 +52,8 @@ migrationFiles.forEach((file) => {
   const content = fs.readFileSync(path.join(migrationsDir, file), "utf8");
   assert(content.trim().length > 0, `Migration is empty: ${file}`);
   assert(!hasPlaceholder(content), `Migration contains placeholder text: ${file}`);
+  assert(SQL_KEYWORD_PATTERN.test(content), `Migration does not appear to contain SQL statements: ${file}`);
+  assert(content.includes(";"), `Migration appears malformed (missing semicolons): ${file}`);
 });
 
 const policyFiles = fs
