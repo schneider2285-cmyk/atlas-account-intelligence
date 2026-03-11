@@ -54,6 +54,8 @@ Supabase schema + seed migrations live in `supabase/migrations/` and create:
 - `atlas_agent_runs`
 - `atlas_connector_runs`
 - `atlas_score_history`
+- `atlas_orgs`
+- `atlas_user_profiles`
 
 Analytics views:
 

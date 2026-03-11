@@ -57,6 +57,7 @@ Migrations are in [`supabase/migrations`](./supabase/migrations):
 - `20260310143100_seed_atlas_data.sql`
 - `20260310150000_extend_runtime_tables.sql`
 - `20260310151000_create_analytics_views.sql`
+- `20260311103000_multitenant_org_role_rls.sql`
 
 Apply with Supabase CLI:
 
@@ -69,6 +70,11 @@ Or run both SQL files in the Supabase SQL editor in order.
 Note: the default RLS policies in the migration are intentionally open for `anon` and `authenticated` to simplify local/dev usage. Tighten these for production.
 For production hardening, apply [`supabase/policies/production_rls.sql`](./supabase/policies/production_rls.sql) after authentication is enabled.
 For a safer intermediate step, apply [`supabase/policies/transitional_rls.sql`](./supabase/policies/transitional_rls.sql) to keep anonymous reads while blocking anonymous writes.
+
+Role tiers are enforced via `atlas_user_profiles`:
+- `admin`: full org-scoped access
+- `manager`: org-scoped runtime writes (signals, opportunities, briefs, run history)
+- `rep`: org-scoped workflow writes (activities, kanban)
 
 ## Run
 

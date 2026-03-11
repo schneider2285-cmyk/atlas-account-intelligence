@@ -8,6 +8,7 @@ Apply migrations from this folder in order:
 2. `migrations/20260310143100_seed_atlas_data.sql`
 3. `migrations/20260310150000_extend_runtime_tables.sql`
 4. `migrations/20260310151000_create_analytics_views.sql`
+5. `migrations/20260311103000_multitenant_org_role_rls.sql`
 
 With Supabase CLI:
 
@@ -32,3 +33,4 @@ Create `.env` from `.env.example` and set:
 - Production hardening policies are provided in `policies/production_rls.sql`.
 - Transitional hardening (anon read-only) is provided in `policies/transitional_rls.sql`.
 - The frontend now has an email/password auth gate; strict production RLS expects authenticated sessions.
+- Multi-tenant isolation is enforced by `org_id` with role tiers in `atlas_user_profiles` (`admin`, `manager`, `rep`).
