@@ -128,4 +128,115 @@ export const submissionsRouter = createTRPCRouter({
       await emitChange(CHANNELS.DASHBOARD, EVENTS.REFRESH, {});
       return { success: true };
     }),
+
+  // Pipeline grouped by BU → Project → Candidate
+  pipelineGrouped: publicProcedure
+    .input(
+      z.object({
+        status: z.string().optional(),
+        search: z.string().optional(),
+      }).optional()
+    )
+    .query(async ({ ctx, input }) => {
+      const where: Record<string, unknown> = {};
+      if (input?.status) {
+        where.status = input.status;
+      } else {
+        where.status = { notIn: ["REJECTED", "WITHDRAWN", "TALENT_WITHDRAWN", "TALENT_NO_LONGER_AVAILABLE", "REMOVED_FOR_LOCATION"] };
+      }
+
+      if (input?.search) {
+        where.OR = [
+          { candidate: { name: { contains: input.search, mode: "insensitive" } } },
+          { job: { roleTitle: { contains: input.search, mode: "insensitive" } } },
+          { job: { projectName: { contains: input.search, mode: "insensitive" } } },
+        ];
+      }
+
+      const submissions = await ctx.db.submission.findMany({
+        where,
+        include: {
+          candidate: true,
+          job: {
+            select: {
+              id: true,
+              businessUnit: true,
+              projectName: true,
+              roleTitle: true,
+              yahooPoC: true,
+            },
+          },
+        },
+        orderBy: { dateIntroduced: "desc" },
+      });
+
+      // Group by BU → Project
+      const grouped: Record<string, {
+        businessUnit: string;
+        projects: Record<string, {
+          projectName: string;
+          roleTitle: string;
+          yahooPoC: string;
+          jobId: string;
+          candidates: typeof submissions;
+        }>;
+      }> = {};
+
+      for (const sub of submissions) {
+        const bu = sub.job.businessUnit;
+        const projKey = `${sub.job.projectName}::${sub.job.roleTitle}`;
+
+        if (!grouped[bu]) {
+          grouped[bu] = { businessUnit: bu, projects: {} };
+        }
+        if (!grouped[bu].projects[projKey]) {
+          grouped[bu].projects[projKey] = {
+            projectName: sub.job.projectName,
+            roleTitle: sub.job.roleTitle,
+            yahooPoC: sub.job.yahooPoC,
+            jobId: sub.job.id,
+            candidates: [],
+          };
+        }
+        grouped[bu].projects[projKey].candidates.push(sub);
+      }
+
+      return Object.values(grouped).map((bu) => ({
+        businessUnit: bu.businessUnit,
+        candidateCount: Object.values(bu.projects).reduce((sum, p) => sum + p.candidates.length, 0),
+        projects: Object.values(bu.projects).map((p) => ({
+          ...p,
+          candidates: p.candidates.map((s) => ({
+            id: s.id,
+            candidateId: s.candidateId,
+            name: s.candidate.name,
+            location: s.candidate.location,
+            rate: s.candidate.rate,
+            toptalProfileLink: s.candidate.toptalProfileLink,
+            status: s.status,
+            dateIntroduced: s.dateIntroduced,
+            interviewDateTime: s.interviewDateTime,
+            dateLastStatusChange: s.dateLastStatusChange,
+          })),
+        })),
+      }));
+    }),
+
+  // Recent wins (hired candidates in last 90 days)
+  recentWins: publicProcedure.query(async ({ ctx }) => {
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+    return ctx.db.submission.findMany({
+      where: {
+        status: "HIRED",
+        dateLastStatusChange: { gte: ninetyDaysAgo },
+      },
+      include: {
+        candidate: { select: { name: true, toptalProfileLink: true, location: true } },
+        job: { select: { roleTitle: true, projectName: true, businessUnit: true } },
+      },
+      orderBy: { dateLastStatusChange: "desc" },
+    });
+  }),
 });

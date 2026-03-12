@@ -11,13 +11,15 @@ export const dashboardRouter = createTRPCRouter({
       totalSubmissions,
       hiredCount,
       interviewingCount,
+      pendingDecisionCount,
     ] = await Promise.all([
       ctx.db.job.count(),
       ctx.db.job.count({ where: { status: "ACTIVE" } }),
       ctx.db.candidate.count(),
       ctx.db.submission.count(),
       ctx.db.submission.count({ where: { status: "HIRED" } }),
-      ctx.db.submission.count({ where: { status: "INTERVIEWING" } }),
+      ctx.db.submission.count({ where: { status: { in: ["INTERVIEWING", "INTERVIEW_SCHEDULED", "PENDING_2ND_INTERVIEW"] } } }),
+      ctx.db.submission.count({ where: { status: "PENDING_DECISION" } }),
     ]);
 
     return {
@@ -27,6 +29,7 @@ export const dashboardRouter = createTRPCRouter({
       totalSubmissions,
       hiredCount,
       interviewingCount,
+      pendingDecisionCount,
     };
   }),
 
@@ -62,7 +65,7 @@ export const dashboardRouter = createTRPCRouter({
       // Submissions waiting for feedback
       const staleSubs = await ctx.db.submission.findMany({
         where: {
-          status: { in: ["INTRODUCED", "INTERVIEWING", "PENDING_DECISION"] },
+          status: { in: ["INTRODUCED", "INTERVIEWING", "INTERVIEW_SCHEDULED", "PENDING_DECISION", "PENDING_2ND_INTERVIEW"] },
           dateLastStatusChange: { lt: warningDate },
         },
         include: {
@@ -111,7 +114,7 @@ export const dashboardRouter = createTRPCRouter({
       const hired = job.submissions.filter((s) => s.status === "HIRED").length;
       current.open += job.openHeadcount - hired;
       current.filled += hired;
-      current.interviewing += job.submissions.filter((s) => s.status === "INTERVIEWING").length;
+      current.interviewing += job.submissions.filter((s) => ["INTERVIEWING", "INTERVIEW_SCHEDULED", "PENDING_2ND_INTERVIEW"].includes(s.status)).length;
       current.introduced += job.submissions.filter((s) => s.status === "INTRODUCED").length;
       byBU.set(bu, current);
     }

@@ -2,16 +2,22 @@ import { z } from "zod";
 
 // ─── Enums ──────────────────────────────────────────────────────────
 
-export const BusinessUnit = z.enum(["MAIL", "HOME_ECO", "PARANOIDS", "SPORTS", "OTHER"]);
-export const JobStatus = z.enum(["ACTIVE", "ON_HOLD", "FUTURE_NEED", "CANCELLED"]);
+export const BusinessUnit = z.enum(["MAIL", "HOME_ECO", "PARANOIDS", "SPORTS", "SEARCH", "ADS", "OTHER"]);
+export const JobStatus = z.enum(["ACTIVE", "ON_HOLD", "FUTURE_NEED", "CANCELLED", "FINDING_TALENT", "ENGAGEMENT_COMPLETED", "ROLE_CANCELLED"]);
 export const SubmissionStatus = z.enum([
   "INTRODUCED",
   "INTERVIEWING",
+  "INTERVIEW_SCHEDULED",
+  "PENDING_DECISION",
+  "PENDING_2ND_INTERVIEW",
   "HIRED",
   "REJECTED",
   "WITHDRAWN",
   "REMOVED_FOR_LOCATION",
-  "PENDING_DECISION",
+  "FINDING_TALENT",
+  "CONSIDER_FOR_OTHER_ROLE",
+  "TALENT_NO_LONGER_AVAILABLE",
+  "TALENT_WITHDRAWN",
 ]);
 
 // ─── Jobs ───────────────────────────────────────────────────────────

@@ -29,19 +29,5 @@ export async function emitChange(
   }
 }
 
-// Standard channels
-export const CHANNELS = {
-  JOBS: "jobs",
-  CANDIDATES: "candidates",
-  SUBMISSIONS: "submissions",
-  ACTIVITY: "activity",
-  DASHBOARD: "dashboard",
-} as const;
-
-// Standard events
-export const EVENTS = {
-  CREATED: "created",
-  UPDATED: "updated",
-  DELETED: "deleted",
-  REFRESH: "refresh",
-} as const;
+// Re-export shared channel/event constants for server-side convenience
+export { CHANNELS, EVENTS } from "@/lib/pusher-channels";

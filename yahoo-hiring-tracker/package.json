@@ -10,7 +10,9 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:migrate-sheets": "tsx scripts/migrate-sheets.ts",
+    "db:validate-compliance": "tsx scripts/validate-compliance.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

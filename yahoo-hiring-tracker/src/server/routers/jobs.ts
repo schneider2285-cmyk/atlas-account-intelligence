@@ -43,7 +43,7 @@ export const jobsRouter = createTRPCRouter({
 
       return jobs.map((job) => {
         const hired = job.submissions.filter((s) => s.status === "HIRED").length;
-        const interviewing = job.submissions.filter((s) => s.status === "INTERVIEWING").length;
+        const interviewing = job.submissions.filter((s) => ["INTERVIEWING", "INTERVIEW_SCHEDULED", "PENDING_2ND_INTERVIEW"].includes(s.status)).length;
         const introduced = job.submissions.filter((s) => s.status === "INTRODUCED").length;
         return {
           ...job,
