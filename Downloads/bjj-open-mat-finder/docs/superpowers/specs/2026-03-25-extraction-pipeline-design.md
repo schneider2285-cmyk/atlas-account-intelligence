@@ -1,7 +1,7 @@
 # Schedule Extraction Pipeline — Design Spec
 
 **Date:** 2026-03-25
-**Status:** Draft
+**Status:** Approved
 **Goal:** Automatically extract open mat schedules from gym websites and populate the `open_mats` table, turning 214 empty gym shells into actionable listings.
 
 ---
@@ -42,7 +42,7 @@ Fetch → Discover Schedule URL → Detect Platform → Extract Open Mats → Va
 
 - **Input:** homepage HTML + base URL
 - **Action:**
-  1. **Convention probing:** Try appending common paths to the base URL: `/schedule`, `/class-schedule`, `/classes`, `/timetable`, `/programs`, `/weekly-schedule`. For each, HEAD request first (fast), then GET if 200.
+  1. **Convention probing:** Try appending common paths to the base URL: `/schedule`, `/class-schedule`, `/classes`, `/timetable`, `/programs`, `/weekly-schedule`. Use GET requests with a short 5s timeout for each (HEAD is unreliable on small hosting providers — many return 405 or hang).
   2. **Homepage link crawl (fallback):** If no convention URL hits, parse homepage HTML for `<a>` tags. Score links by keyword match in `href` and anchor text: "schedule", "class", "timetable", "program", "calendar". Follow the highest-scoring link.
   3. **Homepage as schedule (fallback):** Some single-page gyms embed the schedule on the homepage. If no schedule URL found, check if the homepage itself contains schedule-like content.
 - **Output:** `{ scheduleUrl: string, scheduleHtml: string }` or `null` (no schedule page found)
@@ -72,12 +72,14 @@ Fetch → Discover Schedule URL → Detect Platform → Extract Open Mats → Va
 - **Input:** `ExtractedOpenMat[]`
 - **Action:**
   - Validate times: `start_time < end_time`, within reasonable hours (5:00 AM – 11:00 PM)
+  - If `end_time` is null, default to `start_time + 2 hours` and flag lower confidence
   - Normalize day names to `day_of_week` (0=Sunday, 6=Saturday)
   - Detect `mat_type` from keywords: "gi" → gi, "no-gi"/"nogi" → nogi, ambiguous → both
   - Detect "kids" / "children" / "youth" → `age_policy: 'kids_separate'`
-  - Set `confidence_score` based on parser confidence + platform reliability
+  - Map confidence to enum: platform-specific parsers (Kicksite) → `'medium'`, generic HTML → `'low'`, unknown → `'unverified'`. Only community confirmations can reach `'high'`.
   - Set `source_type: 'website_scrape'`
-- **Output:** `ValidatedOpenMat[]` with all fields normalized to database schema
+  - Set `confirmation_method: 'website_scrape'`
+- **Output:** `ValidatedOpenMat[]` (see type definition below)
 
 ### Stage 6: Save
 
@@ -85,11 +87,13 @@ Fetch → Discover Schedule URL → Detect Platform → Extract Open Mats → Va
 - **Action (API route — single gym):**
   1. Return extracted data as JSON preview to the admin UI
   2. Admin reviews and clicks "Save" or "Discard"
-  3. On save: upsert into `open_mats`, update `gyms.last_scraped_at`, `gyms.platform_type`, `gyms.schedule_page_url`, `gyms.scrape_status`
+  3. On save: delete existing `source_type = 'website_scrape'` open mats for this gym, then insert new ones. Update `gyms.last_scraped_at`, `gyms.platform_type`, `gyms.schedule_page_url`, `gyms.scrape_status`.
 - **Action (bulk script):**
-  1. Auto-save with `needs_review: true` flag
+  1. Same delete-then-insert strategy, but with `needs_review: true` flag on all inserted records
   2. Update gym metadata fields
   3. Log results to stdout
+- **Upsert strategy:** We do NOT upsert by composite key. Instead, re-scraping a gym **deletes all `source_type = 'website_scrape'` records for that gym** and re-inserts fresh ones. This is simpler and handles schedule changes (removed open mats) correctly. Community-submitted open mats (`source_type = 'community_submission'`) are never touched by the extraction pipeline.
+- **Supabase client:** Both the API route and bulk script use the **service role** client to bypass RLS. This is consistent with how the discovery layer handles inserts.
 - **Output:** `{ saved: number, skipped: number, errors: string[] }`
 
 ## Parser Registry
@@ -116,6 +120,24 @@ interface ExtractedOpenMat {
   endTime: string | null;   // HH:MM (24h) or null if not found
   rawText: string;          // original text for debugging
 }
+
+// Output of Stage 5 — ready for database insertion
+interface ValidatedOpenMat {
+  gym_id: string;
+  day_of_week: number;              // 0-6
+  start_time: string;               // HH:MM:SS
+  end_time: string;                 // HH:MM:SS (defaulted to start+2h if not found)
+  type: 'gi' | 'nogi' | 'both';    // detected from keywords, default 'both'
+  recurring: boolean;               // true for extracted schedules
+  age_policy: string;               // 'adults_only' | 'kids_separate' | 'all_ages' | 'unknown'
+  source_type: 'website_scrape';
+  source_url: string;               // schedule page URL
+  last_source_check: string;        // ISO timestamp of extraction run
+  needs_review: boolean;            // true for bulk, false for admin-approved
+  confidence_score: 'medium' | 'low' | 'unverified';
+  confirmation_method: 'website_scrape';
+  // All other open_mats columns left at DB defaults (visitor_access: 'unknown', etc.)
+}
 ```
 
 ### Parsers (initial set)
@@ -129,6 +151,7 @@ interface ExtractedOpenMat {
   4. Extract time from tooltip/description text within the element
   5. Determine day by grid position: `column_index = element_position % column_count`
 - Test case: Carlson Gracie Green Valley (carlsongraciegreenvalley.com/schedule/)
+- **SSR assumption:** Kicksite renders schedules server-side (no JS required). This MUST be verified before implementation by running `curl carlsongraciegreenvalley.com/schedule/` and confirming `.schedule-container` and `.grow-class` elements are present in the raw HTML. If they are not, we need Playwright/Puppeteer as a fallback and the Kicksite parser should be deferred.
 
 **2. Generic HTML Parser** (`parsers/generic-html.ts`)
 - Detect: any HTML with `<table>` containing day-of-week headers, or structured `<div>` grid with time patterns
@@ -168,7 +191,7 @@ src/app/admin/
 
 ## Schema Changes
 
-### Migration 003: Extraction Pipeline
+### Migration `003_extraction_pipeline.sql`
 
 **Add to `gyms` table:**
 
@@ -195,6 +218,12 @@ ALTER TABLE open_mats ADD COLUMN IF NOT EXISTS needs_review boolean DEFAULT fals
 ```
 
 - `source_type`: website_scrape, image_ocr, social_media, community_submission, gym_owner
+
+### TypeScript Type Updates
+
+Update `src/lib/types.ts`:
+- Add to `Gym` interface: `platform_type`, `schedule_page_url`, `schedule_format`, `last_scraped_at`, `scrape_status`, `scrape_error`
+- Add to `OpenMat` interface: `source_type`, `source_url`, `last_source_check`, `needs_review`
 
 ## Admin Dashboard: Extraction Tab
 
@@ -249,7 +278,7 @@ When admin clicks "Scrape" on a gym:
 - Automated cron scheduling (run bulk manually for now)
 - Screenshot archival (`source_snapshot_url`)
 - Re-scrape frequency configuration per gym
-- Headless browser rendering (Kicksite renders server-side, no JS needed)
+- Headless browser rendering (Kicksite assumed to render server-side — verify with curl before implementation; see Kicksite parser notes)
 
 ## Success Criteria
 
