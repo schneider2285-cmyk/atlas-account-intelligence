@@ -240,6 +240,18 @@ export default function ResultCard({ gym, distance }: ResultCardProps) {
                   <span className="text-xs text-gray-400">
                     {om.type === 'gi' ? 'Gi' : om.type === 'nogi' ? 'No-Gi' : 'Gi & No-Gi'}
                   </span>
+                  {om.source_type === 'google_search' && (
+                    <span className="text-xs text-gray-400 italic">via search</span>
+                  )}
+                  {(om.confidence_score === 'low' || om.confidence_score === 'unverified') && (
+                    <a
+                      href={`/submit?gym_id=${gym.id}&gym_name=${encodeURIComponent(gym.name)}`}
+                      className="text-xs text-blue-500 hover:text-blue-700 underline ml-auto relative z-20"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Help verify
+                    </a>
+                  )}
                 </div>
               ))}
           </div>
