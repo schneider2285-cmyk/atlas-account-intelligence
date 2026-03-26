@@ -8,6 +8,8 @@
  * With --google-search: enable Google search fallback for gyms with no website open mat data
  * With --limit N: only process first N gyms
  * With --retry-failed: only process gyms that previously failed or had no open mats
+ * With --unscraped: only process gyms that haven't been scraped yet
+ * With --offset N: skip first N gyms (for pagination)
  */
 import { config } from 'dotenv';
 config({ path: '.env.local', override: true });
@@ -20,8 +22,11 @@ async function main() {
   const enableScreenshot = process.argv.includes('--screenshot');
   const enableGoogleSearch = process.argv.includes('--google-search');
   const retryFailed = process.argv.includes('--retry-failed');
+  const unscrapedOnly = process.argv.includes('--unscraped');
   const limitIdx = process.argv.indexOf('--limit');
   const limit = limitIdx !== -1 ? parseInt(process.argv[limitIdx + 1]) : 0;
+  const offsetIdx = process.argv.indexOf('--offset');
+  const offset = offsetIdx !== -1 ? parseInt(process.argv[offsetIdx + 1]) : 0;
 
   const supabase = createServiceClient();
 
@@ -31,12 +36,17 @@ async function main() {
     .not('website', 'is', null)
     .order('name');
 
-  if (retryFailed) {
+  if (unscrapedOnly) {
+    // Only process gyms that haven't been scraped yet
+    query = query.is('scrape_status', null);
+  } else if (retryFailed) {
     // Only re-process gyms that had no open mats or failed
     query = query.in('scrape_status', ['no_open_mats', 'failed', 'no_schedule']);
   }
 
-  if (limit > 0) {
+  if (offset > 0) {
+    query = query.range(offset, offset + (limit > 0 ? limit - 1 : 4999));
+  } else if (limit > 0) {
     query = query.limit(limit);
   } else {
     // Supabase defaults to 1000 rows — override to get all gyms
@@ -55,6 +65,8 @@ async function main() {
   console.log(`Screenshot fallback: ${enableScreenshot ? 'ON' : 'OFF'}`);
   console.log(`Google search fallback: ${enableGoogleSearch ? 'ON' : 'OFF'}`);
   if (retryFailed) console.log('Retry mode: only processing previously failed gyms');
+  if (unscrapedOnly) console.log('Unscraped only: skipping already-processed gyms');
+  if (offset > 0) console.log(`Offset: starting at gym ${offset}`);
   console.log('');
 
   // Launch shared browser if screenshots enabled
