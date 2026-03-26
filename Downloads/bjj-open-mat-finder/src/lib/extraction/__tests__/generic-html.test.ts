@@ -56,4 +56,37 @@ describe('genericHtmlParser.extract', () => {
     const results = genericHtmlParser.extract(noTime);
     expect(results).toEqual([]);
   });
+
+  it('extracts from div-based schedule with day headings', () => {
+    const divSchedule = `
+    <html><body>
+    <div class="schedule">
+      <div><h3>Monday</h3><p>Fundamentals 6:00 - 7:00 am</p></div>
+      <div><h3>Wednesday</h3><p>No-Gi 6:00 - 7:00 am</p></div>
+      <div><h3>Saturday</h3><p>Open Mat 11:00 am - 1:00 pm</p></div>
+    </div>
+    </body></html>`;
+    const results = genericHtmlParser.extract(divSchedule);
+    expect(results.length).toBe(1);
+    expect(results[0].dayOfWeek).toBe(6);
+    expect(results[0].startTime).toBe('11:00');
+    expect(results[0].endTime).toBe('13:00');
+  });
+
+  it('extracts from text-line-based schedule', () => {
+    const textSchedule = `
+    <html><body>
+    <div>
+      Monday
+      Fundamentals 6:00 - 7:00 am
+
+      Saturday
+      Open Mat 10:00 am - 12:00 pm
+    </div>
+    </body></html>`;
+    const results = genericHtmlParser.extract(textSchedule);
+    expect(results.length).toBe(1);
+    expect(results[0].dayOfWeek).toBe(6);
+    expect(results[0].startTime).toBe('10:00');
+  });
 });

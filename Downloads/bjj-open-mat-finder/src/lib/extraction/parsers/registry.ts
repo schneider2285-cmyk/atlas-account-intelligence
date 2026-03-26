@@ -1,5 +1,7 @@
 import type { ScheduleParser } from '../types';
 import { kicksiteParser } from './kicksite';
+import { zenPlannerParser } from './zenplanner';
+import { mindbodyParser } from './mindbody';
 import { genericHtmlParser } from './generic-html';
 
 /**
@@ -8,5 +10,7 @@ import { genericHtmlParser } from './generic-html';
  */
 export const parsers: ScheduleParser[] = [
   kicksiteParser,
+  zenPlannerParser,
+  mindbodyParser,
   genericHtmlParser,
 ];

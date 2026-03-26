@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -15,6 +15,10 @@ import {
   ExternalLink,
   AlertTriangle,
   Loader2,
+  Play,
+  Square,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 interface ExtractionGym extends Gym {
@@ -39,6 +43,13 @@ interface PreviewData {
   platform: string | null;
 }
 
+interface BulkProgress {
+  current: number;
+  total: number;
+  currentGym: string;
+  results: { gym: string; status: string; openMats: number }[];
+}
+
 export function ExtractionTab() {
   const [gyms, setGyms] = useState<ExtractionGym[]>([]);
   const [stats, setStats] = useState<ExtractionStats>({
@@ -55,6 +66,11 @@ export function ExtractionTab() {
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState<string>('all');
+  const [bulkRunning, setBulkRunning] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<BulkProgress | null>(null);
+  const [showBulkLog, setShowBulkLog] = useState(false);
+  const [expandedError, setExpandedError] = useState<string | null>(null);
+  const bulkAbort = useRef(false);
 
   const supabase = createClient();
 
@@ -146,6 +162,64 @@ export function ExtractionTab() {
     setPreview(null);
   }
 
+  async function handleBulkScrape() {
+    const unscraped = gyms.filter((g) => !g.scrape_status);
+    if (unscraped.length === 0) return;
+
+    bulkAbort.current = false;
+    setBulkRunning(true);
+    setShowBulkLog(true);
+    const progress: BulkProgress = {
+      current: 0,
+      total: unscraped.length,
+      currentGym: '',
+      results: [],
+    };
+    setBulkProgress({ ...progress });
+
+    for (const gym of unscraped) {
+      if (bulkAbort.current) break;
+      progress.current++;
+      progress.currentGym = gym.name;
+      setBulkProgress({ ...progress });
+
+      try {
+        const res = await fetch('/api/extract', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ gym_id: gym.id }),
+        });
+        const result = await res.json();
+        const omCount = result.openMats?.length ?? 0;
+
+        if (omCount > 0) {
+          // Auto-save extracted open mats
+          await fetch('/api/extract', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gym_id: gym.id, open_mats: result.openMats }),
+          });
+        }
+
+        progress.results.push({
+          gym: gym.name,
+          status: omCount > 0 ? 'found' : result.error ? 'failed' : 'no_open_mats',
+          openMats: omCount,
+        });
+      } catch {
+        progress.results.push({ gym: gym.name, status: 'error', openMats: 0 });
+      }
+      setBulkProgress({ ...progress });
+    }
+
+    setBulkRunning(false);
+    await fetchData();
+  }
+
+  function handleStopBulk() {
+    bulkAbort.current = true;
+  }
+
   const filteredGyms = gyms.filter((g) => {
     if (filter === 'all') return true;
     if (filter === 'not_scraped') return !g.scrape_status;
@@ -191,6 +265,86 @@ export function ExtractionTab() {
           </Card>
         ))}
       </div>
+
+      {/* Bulk scrape controls */}
+      <div className="flex items-center gap-3">
+        {!bulkRunning ? (
+          <Button
+            size="sm"
+            className="bg-[#1e3a5f] hover:bg-[#2a4f7f]"
+            onClick={handleBulkScrape}
+            disabled={gyms.filter((g) => !g.scrape_status).length === 0}
+          >
+            <Play className="mr-1 h-4 w-4" />
+            Bulk Scrape Unscraped ({gyms.filter((g) => !g.scrape_status).length})
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            className="bg-red-600 hover:bg-red-700"
+            onClick={handleStopBulk}
+          >
+            <Square className="mr-1 h-4 w-4" />
+            Stop Bulk Scrape
+          </Button>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={fetchData}
+          disabled={loading}
+        >
+          <RefreshCw className={`mr-1 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+      </div>
+
+      {/* Bulk progress */}
+      {bulkProgress && (
+        <Card className={bulkRunning ? 'border-2 border-blue-300' : ''}>
+          <CardHeader className="flex flex-row items-center justify-between py-3">
+            <CardTitle className="text-sm">
+              {bulkRunning
+                ? `Scraping ${bulkProgress.current}/${bulkProgress.total}: ${bulkProgress.currentGym}`
+                : `Bulk scrape complete: ${bulkProgress.current}/${bulkProgress.total}`}
+            </CardTitle>
+            <button onClick={() => setShowBulkLog(!showBulkLog)} className="text-gray-500">
+              {showBulkLog ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+          </CardHeader>
+          {bulkRunning && (
+            <div className="mx-4 mb-3 h-2 overflow-hidden rounded-full bg-gray-200">
+              <div
+                className="h-full rounded-full bg-[#1e3a5f] transition-all"
+                style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
+              />
+            </div>
+          )}
+          {showBulkLog && bulkProgress.results.length > 0 && (
+            <CardContent className="max-h-48 overflow-y-auto pt-0">
+              <div className="space-y-1 text-xs">
+                {bulkProgress.results.map((r, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    {r.status === 'found' ? (
+                      <CheckCircle className="h-3 w-3 text-green-600 flex-shrink-0" />
+                    ) : r.status === 'failed' || r.status === 'error' ? (
+                      <XCircle className="h-3 w-3 text-red-500 flex-shrink-0" />
+                    ) : (
+                      <span className="h-3 w-3 rounded-full bg-gray-300 flex-shrink-0" />
+                    )}
+                    <span className="truncate text-gray-700">{r.gym}</span>
+                    {r.openMats > 0 && (
+                      <Badge className="bg-green-100 text-green-800 text-[10px] px-1.5 py-0">
+                        {r.openMats} mat{r.openMats !== 1 ? 's' : ''}
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          )}
+        </Card>
+      )}
 
       {/* Preview modal */}
       {preview && (
@@ -296,8 +450,15 @@ export function ExtractionTab() {
           </thead>
           <tbody className="divide-y">
             {filteredGyms.map((gym) => (
-              <tr key={gym.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-900">{gym.name}</td>
+              <tr key={gym.id} className="hover:bg-gray-50 group">
+                <td className="px-4 py-3 font-medium text-gray-900">
+                  <div>{gym.name}</div>
+                  {gym.scrape_error && expandedError === gym.id && (
+                    <div className="mt-1 text-xs text-red-600 bg-red-50 rounded px-2 py-1 max-w-xs">
+                      {gym.scrape_error}
+                    </div>
+                  )}
+                </td>
                 <td className="px-4 py-3">
                   {gym.website ? (
                     <a
@@ -316,8 +477,21 @@ export function ExtractionTab() {
                 <td className="px-4 py-3 text-gray-600">
                   {gym.platform_type ?? '—'}
                 </td>
-                <td className="px-4 py-3">{statusBadge(gym.scrape_status ?? null)}</td>
-                <td className="px-4 py-3 text-center">{gym.open_mat_count}</td>
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => gym.scrape_error ? setExpandedError(expandedError === gym.id ? null : gym.id) : undefined}
+                    className={gym.scrape_error ? 'cursor-pointer' : ''}
+                  >
+                    {statusBadge(gym.scrape_status ?? null)}
+                  </button>
+                </td>
+                <td className="px-4 py-3 text-center">
+                  {gym.open_mat_count > 0 ? (
+                    <span className="font-semibold text-green-700">{gym.open_mat_count}</span>
+                  ) : (
+                    <span className="text-gray-400">0</span>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-gray-500 text-xs">
                   {gym.last_scraped_at
                     ? new Date(gym.last_scraped_at).toLocaleDateString('en-US', {
@@ -332,7 +506,7 @@ export function ExtractionTab() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    disabled={scraping === gym.id}
+                    disabled={scraping === gym.id || bulkRunning}
                     onClick={() => handleScrape(gym)}
                     className="text-[#1e3a5f]"
                   >
