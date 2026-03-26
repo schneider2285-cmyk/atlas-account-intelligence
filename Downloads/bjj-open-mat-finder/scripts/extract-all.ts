@@ -38,6 +38,9 @@ async function main() {
 
   if (limit > 0) {
     query = query.limit(limit);
+  } else {
+    // Supabase defaults to 1000 rows — override to get all gyms
+    query = query.limit(5000);
   }
 
   const { data: gyms, error } = await query;
