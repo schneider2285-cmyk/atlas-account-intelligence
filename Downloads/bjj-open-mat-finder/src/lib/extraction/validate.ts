@@ -83,7 +83,7 @@ export function validateAIExtraction(
       competition_focused: item.competition_focused ?? undefined,
       uniform_restrictions: item.uniform_restrictions ?? undefined,
       notes: item.notes ?? undefined,
-      extraction_notes: confidenceNote ?? undefined,
+      // extraction_notes not in DB schema yet — store in notes if needed
     };
 
     // Only include drop_in_fee and price if present

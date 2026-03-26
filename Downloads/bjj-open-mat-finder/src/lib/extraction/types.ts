@@ -113,7 +113,6 @@ export interface ValidatedOpenMat {
   competition_focused?: boolean;
   uniform_restrictions?: string;
   notes?: string;
-  extraction_notes?: string;
 }
 
 // --- Pipeline Result ---
