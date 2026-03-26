@@ -1,6 +1,6 @@
 /**
- * Extract open mats from a single gym's website.
- * Usage: npx tsx scripts/extract-gym.ts <gym-id>
+ * Extract open mats from a single gym's website using AI.
+ * Usage: npx tsx scripts/extract-gym.ts <gym-id> [--save] [--screenshot]
  */
 import { config } from 'dotenv';
 config({ path: '.env.local' });
@@ -9,10 +9,13 @@ import { runExtractionPipeline } from '../src/lib/extraction/pipeline';
 
 async function main() {
   const gymId = process.argv[2];
-  if (!gymId) {
-    console.error('Usage: npx tsx scripts/extract-gym.ts <gym-id>');
+  if (!gymId || gymId.startsWith('--')) {
+    console.error('Usage: npx tsx scripts/extract-gym.ts <gym-id> [--save] [--screenshot]');
     process.exit(1);
   }
+
+  const shouldSave = process.argv.includes('--save');
+  const enableScreenshot = process.argv.includes('--screenshot');
 
   const supabase = createServiceClient();
 
@@ -33,18 +36,19 @@ async function main() {
   }
 
   console.log(`\nExtracting: ${gym.name} (${gym.website})`);
+  console.log(`  Screenshot fallback: ${enableScreenshot ? 'enabled' : 'disabled'}`);
+
   const result = await runExtractionPipeline({
     gymId: gym.id,
     gymName: gym.name,
     websiteUrl: gym.website,
     needsReview: false,
+    enableScreenshot,
   });
 
   // Update gym metadata
   await supabase.from('gyms').update({
-    platform_type: result.platform ?? null,
     schedule_page_url: result.scheduleUrl ?? null,
-    schedule_format: result.platform ? 'structured_html' : null,
     last_scraped_at: new Date().toISOString(),
     scrape_status: result.success
       ? (result.extractedCount > 0 ? 'success' : 'no_open_mats')
@@ -53,10 +57,13 @@ async function main() {
   }).eq('id', gym.id);
 
   console.log(`  Stage: ${result.stage}`);
-  console.log(`  Platform: ${result.platform ?? 'unknown'}`);
   console.log(`  Schedule URL: ${result.scheduleUrl ?? 'none'}`);
   console.log(`  Extracted: ${result.extractedCount} open mats`);
   console.log(`  Validated: ${result.openMats.length} open mats`);
+
+  if (result.tokensUsed) {
+    console.log(`  Tokens: ${result.tokensUsed.input} in / ${result.tokensUsed.output} out`);
+  }
 
   if (result.error) {
     console.log(`  Error: ${result.error}`);
@@ -66,21 +73,31 @@ async function main() {
     console.log('\n  Open Mats Found:');
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     for (const om of result.openMats) {
-      console.log(`    ${days[om.day_of_week]} ${om.start_time}-${om.end_time} (${om.type}) [${om.confidence_score}]`);
+      const extras = [];
+      if (om.visitor_access && om.visitor_access !== 'unknown') extras.push(om.visitor_access);
+      if (om.drop_in_fee?.free) extras.push('free');
+      else if (om.drop_in_fee?.amount) extras.push(`$${om.drop_in_fee.amount}`);
+      if (om.coaching_present === 'yes') extras.push('coached');
+      if (om.women_presence === 'women_specific') extras.push('women-only');
+
+      console.log(
+        `    ${days[om.day_of_week]} ${om.start_time}-${om.end_time} (${om.type}) [${om.confidence_score}]` +
+        (extras.length ? ` — ${extras.join(', ')}` : '')
+      );
+      if (om.notes) console.log(`      Note: ${om.notes}`);
     }
 
-    if (process.argv.includes('--save')) {
+    if (shouldSave) {
       // Delete existing scraped open mats for this gym
       await supabase.from('open_mats').delete()
         .eq('gym_id', gym.id)
-        .eq('source_type', 'website_scrape');
+        .in('source_type', ['website_scrape', 'image_ocr']);
 
-      // Insert new ones
       const { error: insertErr } = await supabase.from('open_mats').insert(result.openMats);
       if (insertErr) {
         console.log(`\n  Save error: ${insertErr.message}`);
       } else {
-        console.log(`\n  Saved ${result.openMats.length} open mats to database.`);
+        console.log(`\n  ✓ Saved ${result.openMats.length} open mats to database.`);
       }
     } else {
       console.log('\n  (Dry run — use --save to persist to database)');

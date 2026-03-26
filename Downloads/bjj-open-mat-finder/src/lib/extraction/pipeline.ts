@@ -1,24 +1,28 @@
 import { fetchPage } from './fetch';
 import { discoverScheduleUrl } from './discover-schedule';
-import { detectPlatform, getParser } from './detect-platform';
-import { validateAndNormalize } from './validate';
-import type { PipelineResult, ValidatedOpenMat } from './types';
+import { cleanHtmlForAI } from './clean-html';
+import { extractWithAI, extractWithAIVision } from './ai-extract';
+import { captureScheduleScreenshot } from './screenshot';
+import { validateAIExtraction } from './validate';
+import type { PipelineResult, PipelineStage } from './types';
 
 interface PipelineOptions {
   gymId: string;
   gymName: string;
   websiteUrl: string;
-  needsReview: boolean;
+  needsReview?: boolean;
+  enableScreenshot?: boolean; // default false - requires playwright
 }
 
 /**
- * Main extraction pipeline orchestrator.
- * Runs stages 1-5 sequentially for a single gym.
+ * AI-first extraction pipeline orchestrator.
+ * Runs stages sequentially for a single gym:
+ *   fetch → discover schedule → clean HTML → AI extract → (screenshot fallback) → validate
  * Returns results (including extracted open mats) without saving to DB.
- * Stage 6 (save) is handled by the caller (API route or bulk script).
+ * Stage 'save' is handled by the caller (API route or bulk script).
  */
 export async function runExtractionPipeline(options: PipelineOptions): Promise<PipelineResult> {
-  const { gymId, gymName, websiteUrl, needsReview } = options;
+  const { gymId, gymName, websiteUrl, needsReview = false, enableScreenshot = false } = options;
 
   const result: PipelineResult = {
     gymId,
@@ -31,6 +35,7 @@ export async function runExtractionPipeline(options: PipelineOptions): Promise<P
   };
 
   // Stage 1: Fetch homepage
+  console.log(`[Pipeline] ${gymName}: Fetching homepage...`);
   const homepage = await fetchPage(websiteUrl);
   if (!homepage) {
     result.error = `Failed to fetch ${websiteUrl}`;
@@ -39,53 +44,81 @@ export async function runExtractionPipeline(options: PipelineOptions): Promise<P
 
   // Stage 2: Discover schedule URL
   result.stage = 'discover_schedule';
+  console.log(`[Pipeline] ${gymName}: Discovering schedule page...`);
   const schedule = await discoverScheduleUrl(websiteUrl, homepage.html);
-  if (!schedule) {
-    result.error = 'No schedule page found';
-    return result;
-  }
   result.scheduleUrl = schedule.scheduleUrl;
 
-  // Stage 3: Detect platform
-  result.stage = 'detect_platform';
-  const platform = detectPlatform(schedule.scheduleHtml);
-  if (!platform) {
-    result.error = 'No parser matched this schedule format';
-    result.platform = 'unknown';
-    return result;
+  if (schedule.isHomepageFallback) {
+    console.log(`[Pipeline] ${gymName}: No dedicated schedule page found, using homepage as fallback`);
   }
-  result.platform = platform.platform;
 
-  // Stage 4: Extract open mats
-  result.stage = 'extract';
-  const parser = getParser(platform.parserName);
-  if (!parser) {
-    result.error = `Parser ${platform.parserName} not found in registry`;
+  // Stage 3: Clean HTML for AI consumption
+  result.stage = 'clean_html';
+  console.log(`[Pipeline] ${gymName}: Cleaning HTML for AI extraction...`);
+  const cleanedHtml = cleanHtmlForAI(schedule.scheduleHtml);
+
+  if (!cleanedHtml) {
+    result.error = 'Cleaned HTML is empty — no extractable content found';
     return result;
   }
 
-  const extracted = parser.extract(schedule.scheduleHtml);
-  result.extractedCount = extracted.length;
+  // Stage 4: AI extraction
+  result.stage = 'ai_extract';
+  console.log(`[Pipeline] ${gymName}: Running AI extraction...`);
+  let aiResult = await extractWithAI(cleanedHtml);
+  let tokensUsed = { ...aiResult.tokensUsed };
+  let isScreenshot = false;
 
-  if (extracted.length === 0) {
-    result.error = 'Schedule found but no open mats detected';
+  // Stage 5: Screenshot fallback (if AI found no schedule and screenshots enabled)
+  if (!aiResult.schedulePageFound && enableScreenshot) {
+    result.stage = 'screenshot_fallback';
+    console.log(`[Pipeline] ${gymName}: AI found no schedule, attempting screenshot fallback...`);
+
+    const screenshot = await captureScheduleScreenshot(schedule.scheduleUrl);
+
+    if (screenshot) {
+      console.log(`[Pipeline] ${gymName}: Screenshot captured, running vision extraction...`);
+      const visionResult = await extractWithAIVision(screenshot);
+      aiResult = visionResult;
+      isScreenshot = true;
+
+      // Accumulate tokens from both text and vision extractions
+      tokensUsed.input += visionResult.tokensUsed.input;
+      tokensUsed.output += visionResult.tokensUsed.output;
+    } else {
+      console.log(`[Pipeline] ${gymName}: Screenshot capture failed`);
+    }
+  }
+
+  result.tokensUsed = tokensUsed;
+  result.extractedCount = aiResult.openMats.length;
+
+  if (aiResult.openMats.length === 0) {
+    result.error = aiResult.schedulePageFound
+      ? 'Schedule found but no open mats detected'
+      : 'No schedule content found on page';
     result.success = true;
+    result.stage = 'save';
     return result;
   }
 
-  // Stage 5: Validate & normalize
+  // Stage 6: Validate & normalize AI output
   result.stage = 'validate';
-  const validated = validateAndNormalize(
-    extracted,
+  console.log(`[Pipeline] ${gymName}: Validating ${aiResult.openMats.length} extracted open mats...`);
+  const sourceUrl = schedule.scheduleUrl;
+  const validated = validateAIExtraction(
+    aiResult.openMats,
     gymId,
-    schedule.scheduleUrl,
-    platform.confidence,
-    needsReview
+    sourceUrl,
+    isScreenshot,
+    aiResult.confidenceNote,
   );
 
   result.openMats = validated;
   result.success = true;
   result.stage = 'save';
+
+  console.log(`[Pipeline] ${gymName}: Complete — ${validated.length} open mats validated`);
 
   return result;
 }

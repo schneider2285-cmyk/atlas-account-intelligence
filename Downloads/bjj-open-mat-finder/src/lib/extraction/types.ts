@@ -1,4 +1,8 @@
-import type { ConfidenceLevel, ConfirmationMethod, MartialArtType, AgePolicy } from '@/lib/types';
+import type {
+  ConfidenceLevel, ConfirmationMethod, FreshnessStatus,
+  MartialArtType, AgePolicy, VisitorAccess, IntensityLevel,
+  WomenPresence, CoachingPresence, BeginnerFriendly, DropInFee,
+} from '@/lib/types';
 
 // --- Pipeline Stage Results ---
 
@@ -11,7 +15,46 @@ export interface FetchResult {
 export interface ScheduleDiscoveryResult {
   scheduleUrl: string;
   scheduleHtml: string;
+  isHomepageFallback?: boolean;
 }
+
+// --- AI Extraction Types ---
+
+export interface AIExtractedOpenMat {
+  class_name: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string | null;
+  type: 'gi' | 'nogi' | 'both' | 'unknown';
+  recurring: boolean;
+  specific_date?: string | null;
+  drop_in_fee?: {
+    free: boolean;
+    amount?: number | null;
+    first_visit_free?: boolean | null;
+    unknown: boolean;
+  };
+  visitor_access?: string;
+  advance_contact_required?: boolean | null;
+  contact_instructions?: string | null;
+  coaching_present?: boolean | null;
+  intensity?: string;
+  beginner_friendly?: boolean | null;
+  women_only?: boolean;
+  competition_focused?: boolean | null;
+  uniform_restrictions?: string | null;
+  notes?: string | null;
+}
+
+export interface AIExtractionResult {
+  openMats: AIExtractedOpenMat[];
+  schedulePageFound: boolean;
+  confidenceNote: string | null;
+  tokensUsed: { input: number; output: number };
+  isScreenshot?: boolean;
+}
+
+// --- Legacy parser types (deprecated, kept for reference) ---
 
 export interface DetectionResult {
   detected: boolean;
@@ -24,8 +67,6 @@ export interface PlatformDetectionResult {
   parserName: string;
   confidence: number;
 }
-
-// --- Parser Interface ---
 
 export interface ExtractedOpenMat {
   className: string;
@@ -50,13 +91,29 @@ export interface ValidatedOpenMat {
   end_time: string;
   type: MartialArtType;
   recurring: boolean;
+  specific_date?: string | null;
   age_policy: AgePolicy;
-  source_type: 'website_scrape';
+  source_type: 'website_scrape' | 'image_ocr';
   source_url: string;
   last_source_check: string;
   needs_review: boolean;
   confidence_score: ConfidenceLevel;
+  freshness_status: FreshnessStatus;
   confirmation_method: ConfirmationMethod;
+  // AI-enriched fields
+  price?: number;
+  drop_in_fee?: DropInFee;
+  visitor_access?: VisitorAccess;
+  advance_contact_required?: boolean;
+  contact_instructions?: string;
+  coaching_present?: CoachingPresence;
+  intensity?: IntensityLevel;
+  beginner_friendly?: BeginnerFriendly;
+  women_presence?: WomenPresence;
+  competition_focused?: boolean;
+  uniform_restrictions?: string;
+  notes?: string;
+  extraction_notes?: string;
 }
 
 // --- Pipeline Result ---
@@ -64,8 +121,9 @@ export interface ValidatedOpenMat {
 export type PipelineStage =
   | 'fetch'
   | 'discover_schedule'
-  | 'detect_platform'
-  | 'extract'
+  | 'clean_html'
+  | 'ai_extract'
+  | 'screenshot_fallback'
   | 'validate'
   | 'save';
 
@@ -80,4 +138,5 @@ export interface PipelineResult {
   extractedCount: number;
   savedCount: number;
   openMats: ValidatedOpenMat[];
+  tokensUsed?: { input: number; output: number };
 }
