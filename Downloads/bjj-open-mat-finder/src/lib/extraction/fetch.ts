@@ -24,6 +24,10 @@ export async function fetchPage(url: string): Promise<FetchResult | null> {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        // Don't retry client errors (4xx) — only retry server errors (5xx)
+        if (response.status >= 400 && response.status < 500) {
+          return null;
+        }
         console.warn(`Fetch ${url}: HTTP ${response.status}`);
         if (attempt < MAX_RETRIES) {
           await delay(RETRY_DELAY_MS);

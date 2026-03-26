@@ -3,7 +3,7 @@
  * Usage: npx tsx scripts/extract-gym.ts <gym-id> [--save] [--screenshot]
  */
 import { config } from 'dotenv';
-config({ path: '.env.local' });
+config({ path: '.env.local', override: true });
 import { createServiceClient } from '../src/lib/supabase/service';
 import { runExtractionPipeline } from '../src/lib/extraction/pipeline';
 

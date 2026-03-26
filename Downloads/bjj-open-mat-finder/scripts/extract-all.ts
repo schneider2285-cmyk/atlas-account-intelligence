@@ -8,7 +8,7 @@
  * With --limit N: only process first N gyms
  */
 import { config } from 'dotenv';
-config({ path: '.env.local' });
+config({ path: '.env.local', override: true });
 import { createServiceClient } from '../src/lib/supabase/service';
 import { runExtractionPipeline } from '../src/lib/extraction/pipeline';
 import { launchBrowser, closeBrowser } from '../src/lib/extraction/screenshot';
