@@ -24,7 +24,7 @@ export function validateAIExtraction(
   extracted: AIExtractedOpenMat[],
   gymId: string,
   sourceUrl: string,
-  isScreenshot: boolean,
+  sourceType: 'website_scrape' | 'image_ocr' | 'google_search',
   confidenceNote: string | null
 ): ValidatedOpenMat[] {
   const now = new Date().toISOString();
@@ -65,13 +65,13 @@ export function validateAIExtraction(
       recurring: item.recurring,
       specific_date: item.specific_date ?? null,
       age_policy: agePolicy,
-      source_type: isScreenshot ? 'image_ocr' : 'website_scrape',
+      source_type: sourceType,
       source_url: sourceUrl,
       last_source_check: now,
-      needs_review: isScreenshot, // screenshots are lower confidence, flag for review
-      confidence_score: isScreenshot ? 'low' : 'medium',
+      needs_review: sourceType !== 'website_scrape',
+      confidence_score: sourceType === 'website_scrape' ? 'medium' : 'low',
       freshness_status: 'likely_current',
-      confirmation_method: 'website_scrape',
+      confirmation_method: sourceType === 'google_search' ? 'social_media' : 'website_scrape',
       // AI-enriched fields
       visitor_access: visitorAccess,
       advance_contact_required: item.advance_contact_required ?? undefined,

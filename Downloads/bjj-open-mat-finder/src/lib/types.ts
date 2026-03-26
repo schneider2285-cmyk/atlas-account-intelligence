@@ -167,7 +167,7 @@ export interface OpenMat {
   evidence_sources: EvidenceSource[];
 
   // Extraction pipeline tracking
-  source_type?: 'website_scrape' | 'image_ocr' | 'social_media' | 'community_submission' | 'gym_owner' | null;
+  source_type?: 'website_scrape' | 'image_ocr' | 'social_media' | 'google_search' | 'community_submission' | 'gym_owner' | null;
   source_url?: string | null;
   last_source_check?: string | null;
   needs_review?: boolean;

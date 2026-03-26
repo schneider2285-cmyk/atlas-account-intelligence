@@ -70,6 +70,7 @@ export async function runExtractionPipeline(options: PipelineOptions): Promise<P
   let aiResult = await extractWithAI(cleanedHtml);
   let tokensUsed = { ...aiResult.tokensUsed };
   let isScreenshot = false;
+  let isGoogleSearch = false;
 
   // Stage 5: Screenshot fallback (if AI found no schedule and screenshots enabled)
   if (!aiResult.schedulePageFound && enableScreenshot) {
@@ -100,6 +101,7 @@ export async function runExtractionPipeline(options: PipelineOptions): Promise<P
     tokensUsed.output += searchResult.tokensUsed.output;
 
     if (searchResult.openMats.length > 0) {
+      isGoogleSearch = true;
       console.log(`[Pipeline] ${gymName}: Google search found ${searchResult.openMats.length} open mats!`);
       aiResult = {
         ...aiResult,
@@ -126,11 +128,14 @@ export async function runExtractionPipeline(options: PipelineOptions): Promise<P
   result.stage = 'validate';
   console.log(`[Pipeline] ${gymName}: Validating ${aiResult.openMats.length} extracted open mats...`);
   const sourceUrl = schedule.scheduleUrl;
+  const sourceType = isScreenshot ? 'image_ocr' as const
+    : isGoogleSearch ? 'google_search' as const
+    : 'website_scrape' as const;
   const validated = validateAIExtraction(
     aiResult.openMats,
     gymId,
     sourceUrl,
-    isScreenshot,
+    sourceType,
     aiResult.confidenceNote,
   );
 

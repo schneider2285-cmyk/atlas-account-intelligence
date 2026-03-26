@@ -93,7 +93,7 @@ export interface ValidatedOpenMat {
   recurring: boolean;
   specific_date?: string | null;
   age_policy: AgePolicy;
-  source_type: 'website_scrape' | 'image_ocr';
+  source_type: 'website_scrape' | 'image_ocr' | 'google_search';
   source_url: string;
   last_source_check: string;
   needs_review: boolean;

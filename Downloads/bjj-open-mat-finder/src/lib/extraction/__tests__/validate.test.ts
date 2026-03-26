@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { validateAndNormalize } from '../validate';
-import type { ExtractedOpenMat } from '../types';
+import { validateAndNormalize, validateAIExtraction } from '../validate';
+import type { ExtractedOpenMat, AIExtractedOpenMat } from '../types';
 
 const baseItem: ExtractedOpenMat = {
   className: 'Open Mat',
@@ -72,5 +72,41 @@ describe('validateAndNormalize', () => {
   it('sets needs_review flag', () => {
     const results = validateAndNormalize([baseItem], 'gym-123', 'https://example.com', 0.9, true);
     expect(results[0].needs_review).toBe(true);
+  });
+});
+
+describe('validateAIExtraction sourceType', () => {
+  const baseOpenMat: AIExtractedOpenMat = {
+    class_name: 'Open Mat',
+    day_of_week: 6,
+    start_time: '12:00',
+    end_time: '14:00',
+    type: 'both',
+    recurring: true,
+    women_only: false,
+  };
+
+  it('sets source_type to google_search when sourceType is google_search', () => {
+    const result = validateAIExtraction([baseOpenMat], 'gym-123', 'https://example.com', 'google_search', null);
+    expect(result[0].source_type).toBe('google_search');
+    expect(result[0].confidence_score).toBe('low');
+    expect(result[0].needs_review).toBe(true);
+    expect(result[0].confirmation_method).toBe('social_media');
+  });
+
+  it('sets source_type to website_scrape when sourceType is website_scrape', () => {
+    const result = validateAIExtraction([baseOpenMat], 'gym-123', 'https://example.com', 'website_scrape', null);
+    expect(result[0].source_type).toBe('website_scrape');
+    expect(result[0].confidence_score).toBe('medium');
+    expect(result[0].needs_review).toBe(false);
+    expect(result[0].confirmation_method).toBe('website_scrape');
+  });
+
+  it('sets source_type to image_ocr when sourceType is image_ocr', () => {
+    const result = validateAIExtraction([baseOpenMat], 'gym-123', 'https://example.com', 'image_ocr', null);
+    expect(result[0].source_type).toBe('image_ocr');
+    expect(result[0].confidence_score).toBe('low');
+    expect(result[0].needs_review).toBe(true);
+    expect(result[0].confirmation_method).toBe('website_scrape');
   });
 });
