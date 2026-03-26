@@ -2,7 +2,8 @@
  * Extract open mats from a single gym's website.
  * Usage: npx tsx scripts/extract-gym.ts <gym-id>
  */
-import 'dotenv/config';
+import { config } from 'dotenv';
+config({ path: '.env.local' });
 import { createServiceClient } from '../src/lib/supabase/service';
 import { runExtractionPipeline } from '../src/lib/extraction/pipeline';
 
@@ -66,6 +67,23 @@ async function main() {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     for (const om of result.openMats) {
       console.log(`    ${days[om.day_of_week]} ${om.start_time}-${om.end_time} (${om.type}) [${om.confidence_score}]`);
+    }
+
+    if (process.argv.includes('--save')) {
+      // Delete existing scraped open mats for this gym
+      await supabase.from('open_mats').delete()
+        .eq('gym_id', gym.id)
+        .eq('source_type', 'website_scrape');
+
+      // Insert new ones
+      const { error: insertErr } = await supabase.from('open_mats').insert(result.openMats);
+      if (insertErr) {
+        console.log(`\n  Save error: ${insertErr.message}`);
+      } else {
+        console.log(`\n  Saved ${result.openMats.length} open mats to database.`);
+      }
+    } else {
+      console.log('\n  (Dry run — use --save to persist to database)');
     }
   }
 }

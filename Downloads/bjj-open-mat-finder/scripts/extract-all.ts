@@ -5,7 +5,8 @@
  * Without --save: dry run, shows what would be extracted
  * With --save: saves extracted open mats to database with needs_review=true
  */
-import 'dotenv/config';
+import { config } from 'dotenv';
+config({ path: '.env.local' });
 import { createServiceClient } from '../src/lib/supabase/service';
 import { runExtractionPipeline } from '../src/lib/extraction/pipeline';
 
