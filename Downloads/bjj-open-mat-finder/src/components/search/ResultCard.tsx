@@ -215,6 +215,11 @@ export default function ResultCard({ gym, distance }: ResultCardProps) {
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
           <span className={cn('inline-block w-2 h-2 rounded-full flex-shrink-0', confidenceDotStyles[confidence])} />
           <span>{CONFIDENCE_LABELS[confidence]}</span>
+          {openMats.some((om) => om.source_type === 'community_submission') && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-xs font-medium">
+              ✓ Community verified
+            </span>
+          )}
         </div>
 
         {/* Distance */}
@@ -257,16 +262,8 @@ export default function ResultCard({ gym, distance }: ResultCardProps) {
           </div>
         )}
 
-        {/* Badges row: gi/nogi, price, women's presence, intensity */}
+        {/* Badges row: price, women's presence, intensity */}
         <div className="flex flex-wrap items-center gap-2">
-          {openMats.map((om) => (
-            <Badge
-              key={om.id}
-              variant={om.type === 'gi' ? 'gi' : om.type === 'nogi' ? 'nogi' : 'default'}
-            >
-              {om.type === 'gi' ? 'Gi' : om.type === 'nogi' ? 'No-Gi' : 'Gi & No-Gi'}
-            </Badge>
-          ))}
           {openMats.some((om) => om.price === 0) && (
             <Badge variant="free">Free</Badge>
           )}
