@@ -16,21 +16,22 @@ import { createServiceClient } from '../src/lib/supabase/service';
 // Types
 // ---------------------------------------------------------------------------
 
+// New Places API response types
 interface PlaceResult {
-  name: string;
-  formatted_address: string;
-  geometry: { location: { lat: number; lng: number } };
-  place_id: string;
-  website?: string;
+  id: string; // place ID
+  displayName: { text: string };
+  formattedAddress: string;
+  location: { latitude: number; longitude: number };
+  websiteUri?: string;
   rating?: number;
-  user_ratings_total?: number;
-  business_status?: string;
+  userRatingCount?: number;
+  businessStatus?: string;
 }
 
 interface TextSearchResponse {
-  status: string;
-  results: PlaceResult[];
-  next_page_token?: string;
+  places?: PlaceResult[];
+  nextPageToken?: string;
+  error?: { message: string };
 }
 
 interface GymInsert {
@@ -164,19 +165,27 @@ function parseAddress(formatted: string): { address: string; city: string; state
 }
 
 async function searchPlaces(query: string, apiKey: string, pageToken?: string): Promise<TextSearchResponse> {
-  const params = new URLSearchParams({
-    query,
-    key: apiKey,
-    type: 'gym',
-  });
+  const url = 'https://places.googleapis.com/v1/places:searchText';
+  const body: Record<string, unknown> = {
+    textQuery: query,
+    maxResultCount: 20,
+  };
   if (pageToken) {
-    params.set('pagetoken', pageToken);
+    body.pageToken = pageToken;
   }
 
-  const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?${params}`;
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.websiteUri,places.rating,places.userRatingCount,places.businessStatus,nextPageToken',
+    },
+    body: JSON.stringify(body),
+  });
   if (!res.ok) {
-    throw new Error(`Google Places API error: ${res.status} ${res.statusText}`);
+    const text = await res.text();
+    throw new Error(`Google Places API error: ${res.status} ${text.slice(0, 200)}`);
   }
   return res.json() as Promise<TextSearchResponse>;
 }
@@ -270,51 +279,52 @@ async function main() {
           break;
         }
 
-        if (response.status !== 'OK' && response.status !== 'ZERO_RESULTS') {
-          console.error(`\n  API status: ${response.status} for query "${query}"`);
+        if (response.error) {
+          console.error(`\n  API error: ${response.error.message} for query "${query}"`);
           break;
         }
 
-        for (const place of response.results) {
+        const places = response.places ?? [];
+        for (const place of places) {
           stats.totalResults++;
 
           // Skip non-operational businesses
-          if (place.business_status && place.business_status !== 'OPERATIONAL') {
+          if (place.businessStatus && place.businessStatus !== 'OPERATIONAL') {
             continue;
           }
 
           // Dedup by place_id (exact)
-          if (existingPlaceIds.has(place.place_id) || runPlaceIds.has(place.place_id)) {
+          if (existingPlaceIds.has(place.id) || runPlaceIds.has(place.id)) {
             stats.duplicatesPlaceId++;
             continue;
           }
 
           // Parse address
-          const parsed = parseAddress(place.formatted_address);
+          const parsed = parseAddress(place.formattedAddress);
 
           // Dedup by normalized name|city (fuzzy)
-          const key = normalize(place.name, parsed.city);
+          const key = normalize(place.displayName.text, parsed.city);
           if (existingNameCity.has(key) || runNameCity.has(key)) {
             stats.duplicatesNameCity++;
             continue;
           }
 
           // Mark as seen for this run
-          runPlaceIds.add(place.place_id);
+          runPlaceIds.add(place.id);
           runNameCity.add(key);
 
           const gym: GymInsert = {
-            name: place.name,
+            name: place.displayName.text,
             address: parsed.address,
             city: parsed.city,
             state: parsed.state,
             zip: parsed.zip,
-            lat: place.geometry.location.lat,
-            lng: place.geometry.location.lng,
-            website: place.website || null,
-            google_place_id: place.place_id,
+            lat: place.location.latitude,
+            lng: place.location.longitude,
+            website: place.websiteUri || null,
+            google_place_id: place.id,
             google_rating: place.rating ?? null,
-            google_user_ratings_total: place.user_ratings_total ?? null,
+            google_user_ratings_total: place.userRatingCount ?? null,
             discovery_source: 'google_places',
           };
 
@@ -325,7 +335,7 @@ async function main() {
         }
 
         // Check for next page
-        pageToken = response.next_page_token;
+        pageToken = response.nextPageToken;
         if (!pageToken) break;
 
         // Google requires a delay before next_page_token is valid
