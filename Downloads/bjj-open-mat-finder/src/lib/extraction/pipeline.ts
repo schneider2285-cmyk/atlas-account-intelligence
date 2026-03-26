@@ -3,6 +3,7 @@ import { discoverScheduleUrl } from './discover-schedule';
 import { cleanHtmlForAI } from './clean-html';
 import { extractWithAI, extractWithAIVision } from './ai-extract';
 import { captureScheduleScreenshot } from './screenshot';
+import { searchAndExtractOpenMats } from './google-search';
 import { validateAIExtraction } from './validate';
 import type { PipelineResult, PipelineStage } from './types';
 
@@ -12,6 +13,7 @@ interface PipelineOptions {
   websiteUrl: string;
   needsReview?: boolean;
   enableScreenshot?: boolean; // default false - requires playwright
+  enableGoogleSearch?: boolean; // default false - requires SERPER_API_KEY or GOOGLE_SEARCH_ENGINE_ID
 }
 
 /**
@@ -22,7 +24,7 @@ interface PipelineOptions {
  * Stage 'save' is handled by the caller (API route or bulk script).
  */
 export async function runExtractionPipeline(options: PipelineOptions): Promise<PipelineResult> {
-  const { gymId, gymName, websiteUrl, needsReview = false, enableScreenshot = false } = options;
+  const { gymId, gymName, websiteUrl, needsReview = false, enableScreenshot = false, enableGoogleSearch = false } = options;
 
   const result: PipelineResult = {
     gymId,
@@ -87,6 +89,24 @@ export async function runExtractionPipeline(options: PipelineOptions): Promise<P
       tokensUsed.output += visionResult.tokensUsed.output;
     } else {
       console.log(`[Pipeline] ${gymName}: Screenshot capture failed`);
+    }
+  }
+
+  // Stage 5b: Google search fallback (if no open mats found and search enabled)
+  if (aiResult.openMats.length === 0 && enableGoogleSearch) {
+    console.log(`[Pipeline] ${gymName}: No open mats from website, trying Google search...`);
+    const searchResult = await searchAndExtractOpenMats(gymName);
+    tokensUsed.input += searchResult.tokensUsed.input;
+    tokensUsed.output += searchResult.tokensUsed.output;
+
+    if (searchResult.openMats.length > 0) {
+      console.log(`[Pipeline] ${gymName}: Google search found ${searchResult.openMats.length} open mats!`);
+      aiResult = {
+        ...aiResult,
+        openMats: searchResult.openMats,
+        schedulePageFound: true,
+        confidenceNote: searchResult.confidenceNote,
+      };
     }
   }
 

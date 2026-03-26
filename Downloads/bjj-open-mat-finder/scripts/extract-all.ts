@@ -1,11 +1,13 @@
 /**
  * Run AI extraction pipeline for ALL gyms with websites.
- * Usage: npx tsx scripts/extract-all.ts [--save] [--screenshot] [--limit N]
+ * Usage: npx tsx scripts/extract-all.ts [--save] [--screenshot] [--google-search] [--limit N] [--retry-failed]
  *
  * Without --save: dry run, shows what would be extracted
  * With --save: saves extracted open mats to database with needs_review=true
  * With --screenshot: enable Playwright screenshot fallback for JS-rendered pages
+ * With --google-search: enable Google search fallback for gyms with no website open mat data
  * With --limit N: only process first N gyms
+ * With --retry-failed: only process gyms that previously failed or had no open mats
  */
 import { config } from 'dotenv';
 config({ path: '.env.local', override: true });
@@ -16,6 +18,8 @@ import { launchBrowser, closeBrowser } from '../src/lib/extraction/screenshot';
 async function main() {
   const shouldSave = process.argv.includes('--save');
   const enableScreenshot = process.argv.includes('--screenshot');
+  const enableGoogleSearch = process.argv.includes('--google-search');
+  const retryFailed = process.argv.includes('--retry-failed');
   const limitIdx = process.argv.indexOf('--limit');
   const limit = limitIdx !== -1 ? parseInt(process.argv[limitIdx + 1]) : 0;
 
@@ -26,6 +30,11 @@ async function main() {
     .select('id, name, website')
     .not('website', 'is', null)
     .order('name');
+
+  if (retryFailed) {
+    // Only re-process gyms that had no open mats or failed
+    query = query.in('scrape_status', ['no_open_mats', 'failed', 'no_schedule']);
+  }
 
   if (limit > 0) {
     query = query.limit(limit);
@@ -40,7 +49,10 @@ async function main() {
 
   console.log(`Found ${gyms.length} gyms with websites`);
   console.log(`Mode: ${shouldSave ? 'SAVE' : 'DRY RUN'}`);
-  console.log(`Screenshot fallback: ${enableScreenshot ? 'ON' : 'OFF'}\n`);
+  console.log(`Screenshot fallback: ${enableScreenshot ? 'ON' : 'OFF'}`);
+  console.log(`Google search fallback: ${enableGoogleSearch ? 'ON' : 'OFF'}`);
+  if (retryFailed) console.log('Retry mode: only processing previously failed gyms');
+  console.log('');
 
   // Launch shared browser if screenshots enabled
   if (enableScreenshot) {
@@ -74,6 +86,7 @@ async function main() {
         websiteUrl: gym.website,
         needsReview: true,
         enableScreenshot,
+        enableGoogleSearch,
       });
 
       // Track token usage

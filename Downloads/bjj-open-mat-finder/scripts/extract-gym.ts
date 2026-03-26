@@ -16,6 +16,7 @@ async function main() {
 
   const shouldSave = process.argv.includes('--save');
   const enableScreenshot = process.argv.includes('--screenshot');
+  const enableGoogleSearch = process.argv.includes('--google-search');
 
   const supabase = createServiceClient();
 
@@ -44,6 +45,7 @@ async function main() {
     websiteUrl: gym.website,
     needsReview: false,
     enableScreenshot,
+    enableGoogleSearch,
   });
 
   // Update gym metadata
