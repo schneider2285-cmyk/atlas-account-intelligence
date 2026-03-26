@@ -326,8 +326,11 @@ export default async function SearchPage({
     }
   }
 
-  // Sort by distance if available, otherwise by name
+  // Sort: gyms WITH open mats first (by distance), then gyms without (by distance)
   gymsWithDistance.sort((a, b) => {
+    const aHasOm = (a.open_mats?.length || 0) > 0 ? 0 : 1;
+    const bHasOm = (b.open_mats?.length || 0) > 0 ? 0 : 1;
+    if (aHasOm !== bHasOm) return aHasOm - bHasOm;
     if (a.distance !== undefined && b.distance !== undefined) {
       return a.distance - b.distance;
     }
