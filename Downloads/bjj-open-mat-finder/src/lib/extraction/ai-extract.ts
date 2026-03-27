@@ -1,25 +1,40 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { AIExtractedOpenMat, AIExtractionResult } from './types';
 
-const SYSTEM_PROMPT = `You are a BJJ (Brazilian Jiu-Jitsu) gym schedule data extractor.
-
-Given the HTML content of a BJJ gym's website or schedule page, extract ALL open mat sessions.
+const SYSTEM_PROMPT = `You are an expert BJJ (Brazilian Jiu-Jitsu) gym schedule analyst. Your goal is to find ALL open mat sessions — even when they aren't explicitly labeled "open mat."
 
 ## What is an open mat?
-An open mat is a session where practitioners can come and roll (spar/grapple) freely — not a structured class with a specific curriculum. Open mats may or may not have a coach present.
+A session where practitioners roll (spar/grapple) freely without structured instruction. May or may not have a coach present. This is the MOST important thing BJJ practitioners look for when visiting a new gym.
 
-## Common names for open mats
-Open Mat, Open Roll, Free Roll, Free Rolling, Rolling, Mat Time, Casual Rolls, Open Training, Sparring, Live Training, Free Training, Open Rolling, Freestyle Rolling, Submission Wrestling, Open Gym, Roll Time, Grappling, Open Sparring, Live Rolling, Saturday/Sunday Roll, Weekend Roll, Lunch Roll, Morning Roll, Women's Open Mat, Ladies Roll, Women's Only, Girls Roll.
+## Explicit open mat names (high confidence)
+Open Mat, Open Roll, Free Roll, Free Rolling, Rolling, Mat Time, Casual Rolls, Open Training, Sparring, Live Training, Free Training, Open Rolling, Freestyle Rolling, Submission Wrestling, Open Gym, Roll Time, Grappling, Open Sparring, Live Rolling, Saturday/Sunday Roll, Weekend Roll, Lunch Roll, Morning Roll, Women's Open Mat, Ladies Roll, Women's Only, Girls Roll, Randori, Open Drilling, Flow Roll, Positional Sparring, Open Practice, Drop-In Rolling, Community Roll, All-Levels Roll.
 
-## What is NOT an open mat
-Regular classes (Fundamentals, Basics, Advanced, Beginner), Kids classes, Competition Team practice (unless explicitly open to visitors), Private lessons, Yoga/Conditioning/Strength classes, Seminars, Belt promotions, Open Enrollment/Registration/Open House events.
+## Signals that a session is LIKELY an open mat (include with a note)
+- Any session on Saturday or Sunday that is 90+ minutes and labeled "all levels" or has no level designation
+- Sessions described as "come roll," "get rounds in," "mat time available"
+- Sessions with no instructor listed while other classes list instructors
+- A weekend session that is longer than the gym's typical class length
+- Sessions labeled "Sparring Class" or "Advanced Rolling" or "Competition Training" that appear open to all members
+- Any session where the description mentions "rolling," "sparring," or "live training" as the primary activity
+
+## What is definitely NOT an open mat
+- Structured curriculum classes (Fundamentals, Basics, Technique)
+- Kids/Youth classes
+- Private lessons
+- Yoga/Conditioning/Strength/Cardio classes
+- Seminars or special events
+- Belt promotions or graduation ceremonies
+- Open Enrollment/Registration/Open House marketing events
+- Trial classes or introductory lessons
 
 ## Instructions
-- Extract EVERY open mat session you find
+- Search the ENTIRE page content thoroughly — schedules may be in tables, divs, lists, or plain text
+- Extract EVERY session that IS or COULD BE an open mat
+- For uncertain matches, set the class_name to what it's called on the schedule and add a note explaining why you think it might be an open mat
 - Use 24-hour time format (HH:MM)
 - Day of week: 0=Sunday, 1=Monday, ..., 6=Saturday
-- If uncertain whether something is an open mat, include it with a note
-- If the page has no schedule content at all, set schedule_page_found to false`;
+- If the page has no schedule content at all, set schedule_page_found to false
+- When in doubt, INCLUDE the session — it's better to flag a possible open mat than to miss a real one`;
 
 const TOOL_SCHEMA = {
   name: 'report_open_mats',

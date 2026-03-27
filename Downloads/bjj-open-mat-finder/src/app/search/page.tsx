@@ -327,8 +327,6 @@ export default async function SearchPage({
   }
 
   // Sort: gyms WITH open mats first (by distance), then gyms without (by distance)
-  const withOmCount = gymsWithDistance.filter(g => (g.open_mats?.length || 0) > 0).length;
-  console.log(`[search] Sorting ${gymsWithDistance.length} gyms (${withOmCount} with open mats)`);
   gymsWithDistance.sort((a, b) => {
     const aHasOm = (a.open_mats?.length || 0) > 0 ? 0 : 1;
     const bHasOm = (b.open_mats?.length || 0) > 0 ? 0 : 1;
@@ -338,7 +336,6 @@ export default async function SearchPage({
     }
     return a.name.localeCompare(b.name);
   });
-  console.log(`[search] First 3 after sort: ${gymsWithDistance.slice(0, 3).map(g => g.name + '(' + (g.open_mats?.length||0) + ')').join(', ')}`);
 
   const locationLabel =
     q || (userLat && userLng ? `${userLat.toFixed(2)}, ${userLng.toFixed(2)}` : null);
